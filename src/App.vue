@@ -194,12 +194,12 @@ onMounted(() => {
           let widgetWidth = screenWidth * 0.9;
           let rightPosition = (screenWidth - widgetWidth - 20) / 2;
           if (screenWidth >= 1000) {
-            rightPosition = 0;
+            rightPosition = 10;
             widgetWidth = screenWidth / 2;
           }
-          let height = screenHeight * 0.98;
+          let height = screenHeight * 0.95;
           if (screenWidth < 1000) height = height / 2;
-          let bottomPosition = -(height / 2) + 30;
+          let bottomPosition = -(height / 2) + 20;
           if (screenWidth < 1000) bottomPosition = -height + 30;
 
           widget.style.setProperty('position', 'fixed', 'important');
@@ -276,37 +276,39 @@ onMounted(() => {
 
 <template>
   <div
-    class="relative w-full max-w-screen-xl flex flex-col p-4 max-xl:pt-8 xl:justify-center justify-start items-start mx-auto h-screen max-xl:h-[90vh]"
+    class="relative w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-screen max-xl:h-[90vh]"
   >
     <!-- Input de texto para tradução -->
-    <div
-      class="z-10 flex flex-col xl:w-1/2 xl:px-20 xl:pt-10 xl:h-[400px] justify-start w-full gap-6 max-xl:gap-2 items-start"
-    >
-      <h1 class="xl:text-3xl text-2xl font-bold xl:mb-4">
-        Tradutor para Libras
-      </h1>
-      <textarea
-        ref="inputRef"
-        v-model="inputText"
-        placeholder="Digitar texto"
-        class="w-full px-4 py-3 h-40 flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
-        @keydown="handleKeyDown"
-        @focus="handleFocus"
-        @blur="handleBlur"
+    <div class="w-full xl:w-1/2 flex xl:h-full p-4 items-center justify-center">
+      <div
+        class="z-10 flex flex-col w-full xl:pt-10 pt-4 max-w-[500px] xl:h-[400px] justify-start gap-6 max-xl:gap-2 items-start"
       >
-      </textarea>
-      <header
-        @click="translateText"
-        class="w-full h-10 cursor-pointer bg-primary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none"
-      >
-        <span>Traduzir</span>
-        <i class="mdi ml-3 text-xl mdi-hand-clap"></i>
-      </header>
-      <div class="text-sm text-right xl:-mt-4 w-full">
-        <span class=""
-          >ou pressione <strong>Enter </strong>
-          <i class="mdi mdi-keyboard-return"></i> para traduzir</span
+        <h1 class="xl:text-3xl text-2xl font-bold xl:mb-4">
+          Tradutor para Libras
+        </h1>
+        <textarea
+          ref="inputRef"
+          v-model="inputText"
+          placeholder="Digitar texto"
+          class="w-full px-4 py-3 h-40 flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
+          @keydown="handleKeyDown"
+          @focus="handleFocus"
+          @blur="handleBlur"
         >
+        </textarea>
+        <header
+          @click="translateText"
+          class="w-full h-10 cursor-pointer bg-primary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none"
+        >
+          <span>Traduzir</span>
+          <i class="mdi ml-3 text-xl mdi-hand-clap"></i>
+        </header>
+        <div class="text-sm text-right xl:-mt-4 w-full">
+          <span class=""
+            >ou pressione <strong>Enter </strong>
+            <i class="mdi mdi-keyboard-return"></i> para traduzir</span
+          >
+        </div>
       </div>
     </div>
 
