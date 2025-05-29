@@ -4,55 +4,71 @@ import { onMounted, ref } from 'vue';
 const inputText = ref('');
 const traslatingText = ref('');
 const inputRef = ref<HTMLTextAreaElement | null>(null);
+const isTranslating = ref(false); // Controle para desabilitar foco automático
 
 const translateText = () => {
   if (!inputText.value.trim()) return;
 
-  // Criar um elemento temporário com o texto para ser "clicado"
-  const tempElement = document.createElement('span');
-  tempElement.textContent = inputText.value;
-  tempElement.style.position = 'absolute';
-  tempElement.style.left = '-9999px'; // Esconder fora da tela
-  tempElement.style.top = '-9999px';
-  tempElement.style.pointerEvents = 'auto';
-  tempElement.style.cursor = 'pointer';
+  // Ativar modo de tradução
+  isTranslating.value = true;
 
-  // Adicionar ao body temporariamente
-  document.body.appendChild(tempElement);
+  // Fazer o teclado recuar em dispositivos móveis
+  if (inputRef.value) {
+    inputRef.value.blur();
+  }
 
-  // Simular um clique no elemento para ativar a tradução VLibras
+  // Aguardar um pouco para garantir que o blur foi processado
   setTimeout(() => {
-    const clickEvent = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-    });
+    // Criar um elemento temporário com o texto para ser "clicado"
+    const tempElement = document.createElement('span');
+    tempElement.textContent = inputText.value;
+    tempElement.style.position = 'absolute';
+    tempElement.style.left = '-9999px'; // Esconder fora da tela
+    tempElement.style.top = '-9999px';
+    tempElement.style.pointerEvents = 'auto';
+    tempElement.style.cursor = 'pointer';
 
-    tempElement.dispatchEvent(clickEvent);
+    // Adicionar ao body temporariamente
+    document.body.appendChild(tempElement);
 
-    // Ativar legendas automaticamente após iniciar tradução
+    // Simular um clique no elemento para ativar a tradução VLibras
     setTimeout(() => {
-      const subtitlesButton = document.querySelector(
-        '.vpw-controls-subtitles'
-      ) as HTMLElement;
-      if (subtitlesButton && !subtitlesButton.dataset.autoClicked) {
-        subtitlesButton.dataset.autoClicked = 'true';
-        subtitlesButton.click();
-      }
-    }, 1500);
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
 
-    // Remover o elemento após um tempo
-    setTimeout(() => {
-      if (tempElement.parentNode) {
-        document.body.removeChild(tempElement);
-      }
-    }, 1000);
+      tempElement.dispatchEvent(clickEvent);
 
-    // Limpar o input e voltar o foco
+      // Ativar legendas automaticamente após iniciar tradução
+      setTimeout(() => {
+        const subtitlesButton = document.querySelector(
+          '.vpw-controls-subtitles'
+        ) as HTMLElement;
+        if (subtitlesButton && !subtitlesButton.dataset.autoClicked) {
+          subtitlesButton.dataset.autoClicked = 'true';
+          subtitlesButton.click();
+        }
+      }, 1500);
+
+      // Remover o elemento após um tempo
+      setTimeout(() => {
+        if (tempElement.parentNode) {
+          document.body.removeChild(tempElement);
+        }
+      }, 1000);
+    }, 100);
+
+    // Limpar o input e definir o texto de tradução imediatamente
     traslatingText.value = inputText.value;
     inputText.value = '';
-    inputRef.value?.focus();
-  }, 100);
+
+    // Desativar modo de tradução após 10 segundos automaticamente
+    setTimeout(() => {
+      isTranslating.value = false;
+    }, 10000);
+  }, 200); // Delay para garantir que o blur foi processado
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
@@ -62,10 +78,27 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 };
 
+const handleFocus = () => {
+  // Limpar o texto de tradução e desativar modo de tradução quando o usuário focar no input novamente
+  if (traslatingText.value) {
+    traslatingText.value = '';
+    isTranslating.value = false;
+  }
+};
+
 const handleBlur = () => {
-  // Apenas retornar foco se realmente perdeu o foco
+  // Não fazer nada durante o modo de tradução
+  if (isTranslating.value) {
+    return;
+  }
+
+  // Apenas retornar foco se não há texto sendo traduzido e o foco realmente foi perdido
   setTimeout(() => {
-    if (document.activeElement !== inputRef.value) {
+    if (
+      !traslatingText.value &&
+      !isTranslating.value &&
+      document.activeElement !== inputRef.value
+    ) {
       inputRef.value?.focus();
     }
   }, 100);
@@ -158,10 +191,12 @@ onMounted(() => {
         const applyWidgetStyles = () => {
           const widgetWidth = 300;
           const screenWidth = window.innerWidth;
-          let rightPosition = (screenWidth - widgetWidth) / 2;
+          let rightPosition = (screenWidth - widgetWidth - 15) / 2;
           if (screenWidth >= 1280) rightPosition -= 300;
           let bottomPosition = -180;
-          if (screenWidth <= 1280) bottomPosition = 0;
+          if (screenWidth <= 1280) bottomPosition = -280;
+          let height = 400;
+          if (screenWidth <= 1280) height = 300;
 
           widget.style.setProperty('position', 'fixed', 'important');
           widget.style.setProperty('top', 'auto', 'important');
@@ -172,10 +207,14 @@ onMounted(() => {
             `${bottomPosition}px`,
             'important'
           );
-          widget.style.setProperty('min-width', '300px', 'important');
-          widget.style.setProperty('min-height', '400px', 'important');
-          widget.style.setProperty('width', '400px', 'important');
-          widget.style.setProperty('height', '300px', 'important');
+          widget.style.setProperty(
+            'min-width',
+            `${widgetWidth}px`,
+            'important'
+          );
+          widget.style.setProperty('min-height', `${height}px`, 'important');
+          widget.style.setProperty('width', `${widgetWidth}px`, 'important');
+          widget.style.setProperty('height', `${height}px`, 'important');
         };
 
         applyWidgetStyles();
@@ -188,28 +227,44 @@ onMounted(() => {
   };
   document.head.appendChild(script);
 
-  // Configurar foco inicial
+  // Configurar foco inicial apenas se não há tradução
   setTimeout(() => {
-    inputRef.value?.focus();
+    if (!traslatingText.value && !isTranslating.value) {
+      inputRef.value?.focus();
+    }
   }, 500);
 
   // Manter foco apenas quando necessário
   document.addEventListener('click', e => {
-    // Só redirecionar foco se não clicou no próprio input
-    if (e.target !== inputRef.value) {
-      setTimeout(() => inputRef.value?.focus(), 50);
+    // Só redirecionar foco se não clicou no próprio input E não há tradução em andamento
+    if (
+      e.target !== inputRef.value &&
+      !traslatingText.value &&
+      !isTranslating.value
+    ) {
+      setTimeout(() => {
+        // Verificar novamente antes de focar
+        if (!isTranslating.value && !traslatingText.value) {
+          inputRef.value?.focus();
+        }
+      }, 50);
     }
   });
 
   // Foco apenas em teclas especiais (não caracteres normais)
   document.addEventListener('keydown', e => {
-    // Só redirecionar foco se não está no input E é uma tecla especial
+    // Só redirecionar foco se não está no input E é uma tecla especial E não há tradução em andamento
     if (
       document.activeElement !== inputRef.value &&
+      !traslatingText.value &&
+      !isTranslating.value &&
       (e.key === 'Tab' || e.key === 'Escape' || e.metaKey || e.ctrlKey)
     ) {
       e.preventDefault();
-      inputRef.value?.focus();
+      // Verificar novamente antes de focar
+      if (!isTranslating.value && !traslatingText.value) {
+        inputRef.value?.focus();
+      }
     }
   });
 });
@@ -217,34 +272,33 @@ onMounted(() => {
 
 <template>
   <div
-    class="relative w-full max-w-screen-xl flex flex-col p-4 max-xl:pb-8 xl:justify-center justify-end items-start mx-auto h-screen"
+    class="relative w-full max-w-screen-xl flex flex-col p-4 max-xl:pt-8 xl:justify-center justify-start items-start mx-auto h-screen max-xl:h-[90vh]"
   >
     <!-- Input de texto para tradução -->
     <div
-      class="z-10 flex flex-col xl:w-1/2 xl:pl-20 xl:h-[400px] justify-start w-full gap-6 items-start"
+      class="z-10 flex flex-col xl:w-1/2 xl:pl-20 xl:h-[400px] justify-start w-full gap-6 max-xl:gap-2 items-start"
     >
-      <h1 class="text-3xl font-bold xl:mb-4">Tradutor para Libras</h1>
+      <h1 class="xl:text-3xl text-2xl font-bold xl:mb-4">
+        Tradutor para Libras
+      </h1>
       <textarea
         ref="inputRef"
         v-model="inputText"
         placeholder="Digitar texto"
         class="w-full px-4 py-3 h-40 flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
         @keydown="handleKeyDown"
+        @focus="handleFocus"
         @blur="handleBlur"
       >
       </textarea>
       <header
         @click="translateText"
-        class="w-full h-10 cursor-pointer transition-all duration-300 rounded-md flex items-center justify-center select-none"
-        :class="{
-          'bg-primary text-white': inputText.trim(),
-          'bg-gray-300 hover:brightness-110 text-gray-500': !inputText.trim(),
-        }"
+        class="w-full h-10 cursor-pointer bg-primary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none"
       >
-        <a>Traduzir</a>
+        <span>Traduzir</span>
         <i class="mdi ml-3 text-xl mdi-hand-clap"></i>
       </header>
-      <div class="text-sm text-right -mt-4 w-full">
+      <div class="text-sm text-right xl:-mt-4 w-full">
         <span class=""
           >ou pressione <strong>Enter </strong>
           <i class="mdi mdi-keyboard-return"></i> para traduzir</span
@@ -263,7 +317,7 @@ onMounted(() => {
     <!-- Texto sendo traduzido -->
     <div
       v-if="traslatingText"
-      class="fixed top-4 xl:right-[calc(50%-150px)] right-4 left-4 xl:left-auto xl:w-80 bg-white border border-gray-200 rounded-lg p-4 shadow-lg z-[9999999999]"
+      class="fixed max-xl:hidden top-4 xl:right-[calc(50%-150px)] right-4 left-4 xl:left-auto xl:w-80 bg-white border border-gray-200 rounded-lg p-4 shadow-lg z-[9999999999]"
     >
       <p class="text-sm text-gray-600 mb-1">Traduzindo:</p>
       <p class="text-midnight font-medium line-clamp-2 text-ellipsis">
