@@ -189,14 +189,18 @@ onMounted(() => {
 
       if (widget) {
         const applyWidgetStyles = () => {
-          const widgetWidth = 300;
-          const screenWidth = window.innerWidth;
-          let rightPosition = (screenWidth - widgetWidth - 15) / 2;
-          if (screenWidth >= 1000) rightPosition -= 300;
-          let bottomPosition = -150;
-          if (screenWidth < 1000) bottomPosition = -280;
-          let height = 400;
-          if (screenWidth < 1000) height = 300;
+          let screenWidth = window.innerWidth;
+          let screenHeight = window.innerHeight;
+          let widgetWidth = screenWidth * 0.9;
+          let rightPosition = (screenWidth - widgetWidth - 20) / 2;
+          if (screenWidth >= 1000) {
+            rightPosition = 0;
+            widgetWidth = screenWidth / 2;
+          }
+          let height = screenHeight * 0.98;
+          if (screenWidth < 1000) height = height / 2;
+          let bottomPosition = -(height / 2) + 30;
+          if (screenWidth < 1000) bottomPosition = -height + 30;
 
           widget.style.setProperty('position', 'fixed', 'important');
           widget.style.setProperty('top', 'auto', 'important');
@@ -276,7 +280,7 @@ onMounted(() => {
   >
     <!-- Input de texto para tradução -->
     <div
-      class="z-10 flex flex-col xl:w-1/2 xl:pl-20 xl:h-[400px] justify-start w-full gap-6 max-xl:gap-2 items-start"
+      class="z-10 flex flex-col xl:w-1/2 xl:px-20 xl:pt-10 xl:h-[400px] justify-start w-full gap-6 max-xl:gap-2 items-start"
     >
       <h1 class="xl:text-3xl text-2xl font-bold xl:mb-4">
         Tradutor para Libras
@@ -308,7 +312,7 @@ onMounted(() => {
 
     <!-- Widget VLibras -->
     <div vw class="enabled">
-      <div vw-access-button class="active fixed bg-black bottom-0 right-0" />
+      <div vw-access-button class="active" />
       <div vw-plugin-wrapper>
         <div class="vw-plugin-top-wrapper !shrink-0" />
       </div>
