@@ -32,7 +32,9 @@ const translateText = () => {
 
     // Ativar legendas automaticamente após iniciar tradução
     setTimeout(() => {
-      const subtitlesButton = document.querySelector('.vpw-controls-subtitles');
+      const subtitlesButton = document.querySelector(
+        '.vpw-controls-subtitles'
+      ) as HTMLElement;
       if (subtitlesButton && !subtitlesButton.dataset.autoClicked) {
         subtitlesButton.dataset.autoClicked = 'true';
         subtitlesButton.click();
@@ -69,13 +71,6 @@ const handleBlur = () => {
   }, 100);
 };
 
-// Manter o foco sempre no input
-const maintainFocus = () => {
-  if (inputRef.value && document.activeElement !== inputRef.value) {
-    inputRef.value.focus();
-  }
-};
-
 onMounted(() => {
   const script = document.createElement('script');
   script.src = 'https://vlibras.gov.br/app/vlibras-plugin.js';
@@ -84,24 +79,44 @@ onMounted(() => {
 
     // Observer para detectar quando o widget é criado/aberto
     const observer = new MutationObserver(() => {
-      const widget = document.querySelector('[vw-plugin-wrapper]');
-      const button = document.querySelector('[vw-access-button]');
+      const widget = document.querySelector(
+        '[vw-plugin-wrapper]'
+      ) as HTMLElement;
+      const button = document.querySelector(
+        '[vw-access-button]'
+      ) as HTMLElement;
       const tutorialDenyBtn = document.querySelector(
         '.vpw-guide__main__deny-btn'
-      );
-      const avatarSelector = document.querySelector('[vp-change-avatar]');
-      const closeButton = document.querySelector('.vpw-header-btn-close');
-      const aboutButton = document.querySelector('.vpw-header-btn-about');
-      const settingsButton = document.querySelector('.vpw-header-btn-settings');
-      const helpButton = document.querySelector('.vpw-help-button');
-      const settingsContainer = document.querySelector('[settings-btn]');
-      const suggestionScreen = document.querySelector('[vp-suggestion-screen]');
-      const rateBox = document.querySelector('[vp-rate-box]');
-      const translatorButton = document.querySelector('.vpw-translator-button');
+      ) as HTMLElement;
+      const avatarSelector = document.querySelector(
+        '[vp-change-avatar]'
+      ) as HTMLElement;
+      const closeButton = document.querySelector(
+        '.vpw-header-btn-close'
+      ) as HTMLElement;
+      const aboutButton = document.querySelector(
+        '.vpw-header-btn-about'
+      ) as HTMLElement;
+      const settingsButton = document.querySelector(
+        '.vpw-header-btn-settings'
+      ) as HTMLElement;
+      const helpButton = document.querySelector(
+        '.vpw-help-button'
+      ) as HTMLElement;
+      const settingsContainer = document.querySelector(
+        '[settings-btn]'
+      ) as HTMLElement;
+      const suggestionScreen = document.querySelector(
+        '[vp-suggestion-screen]'
+      ) as HTMLElement;
+      const rateBox = document.querySelector('[vp-rate-box]') as HTMLElement;
+      const translatorButton = document.querySelector(
+        '.vpw-translator-button'
+      ) as HTMLElement;
       const fullscreenButton = document.querySelector(
         '.vpw-controls-fullscreen'
-      );
-      const vlibrasBox = document.querySelector('.vpw-box');
+      ) as HTMLElement;
+      const vlibrasBox = document.querySelector('.vpw-box') as HTMLElement;
 
       // Se o botão existir mas ainda não foi clicado automaticamente
       if (button && !button.dataset.autoClicked) {
