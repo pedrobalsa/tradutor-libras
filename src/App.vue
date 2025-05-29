@@ -192,11 +192,11 @@ onMounted(() => {
           const widgetWidth = 300;
           const screenWidth = window.innerWidth;
           let rightPosition = (screenWidth - widgetWidth - 15) / 2;
-          if (screenWidth >= 1280) rightPosition -= 300;
-          let bottomPosition = -180;
-          if (screenWidth <= 1280) bottomPosition = -280;
+          if (screenWidth >= 1000) rightPosition -= 300;
+          let bottomPosition = -150;
+          if (screenWidth < 1000) bottomPosition = -280;
           let height = 400;
-          if (screenWidth <= 1280) height = 300;
+          if (screenWidth < 1000) height = 300;
 
           widget.style.setProperty('position', 'fixed', 'important');
           widget.style.setProperty('top', 'auto', 'important');
