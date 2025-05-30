@@ -1,0 +1,77 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg-gradient)"/>
+  
+  <!-- Main content container -->
+  <g transform="translate(100, 100)">
+    
+    <!-- Hand icon (larger version) -->
+    <g transform="translate(50, 150)">
+      <!-- Palm -->
+      <ellipse cx="80" cy="96" rx="32" ry="48" fill="white" opacity="0.9"/>
+      
+      <!-- Fingers -->
+      <rect x="48" y="48" width="12" height="48" rx="6" fill="white" opacity="0.9"/>
+      <rect x="64" y="32" width="12" height="64" rx="6" fill="white" opacity="0.9"/>
+      <rect x="80" y="36" width="12" height="60" rx="6" fill="white" opacity="0.9"/>
+      <rect x="96" y="48" width="12" height="48" rx="6" fill="white" opacity="0.9"/>
+      
+      <!-- Thumb -->
+      <ellipse cx="52" cy="112" rx="8" ry="24" fill="white" opacity="0.9" transform="rotate(-30 52 112)"/>
+    </g>
+    
+    <!-- Title -->
+    <text x="250" y="180" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">
+      Tradutor para Libras
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="250" y="240" font-family="Arial, sans-serif" font-size="36" fill="white" opacity="0.9">
+      Tradução Online Gratuita
+    </text>
+    
+    <!-- Description -->
+    <text x="250" y="300" font-family="Arial, sans-serif" font-size="28" fill="white" opacity="0.8">
+      Língua Brasileira de Sinais
+    </text>
+    
+    <!-- Features -->
+    <g transform="translate(250, 340)">
+      <text x="0" y="0" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">
+        ✓ Gratuito e Acessível
+      </text>
+      <text x="0" y="35" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">
+        ✓ Tecnologia VLibras
+      </text>
+      <text x="0" y="70" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">
+        ✓ Inclusão Digital
+      </text>
+    </g>
+    
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="950" cy="150" r="80" fill="white" opacity="0.1"/>
+  <circle cx="1050" cy="250" r="60" fill="white" opacity="0.1"/>
+  <circle cx="1100" cy="400" r="40" fill="white" opacity="0.1"/>
+  
+  <!-- Speech bubbles representing communication -->
+  <g transform="translate(800, 350)">
+    <circle cx="0" cy="0" r="30" fill="white" opacity="0.2"/>
+    <polygon points="20,15 35,25 25,25" fill="white" opacity="0.2"/>
+  </g>
+  
+  <g transform="translate(900, 300)">
+    <circle cx="0" cy="0" r="25" fill="white" opacity="0.15"/>
+    <polygon points="15,12 28,20 20,20" fill="white" opacity="0.15"/>
+  </g>
+  
+</svg> 

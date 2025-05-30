@@ -1,0 +1,43 @@
+{
+  "name": "Tradutor para Libras - Língua Brasileira de Sinais",
+  "short_name": "Tradutor Libras",
+  "description": "Tradutor online gratuito para Libras (Língua Brasileira de Sinais). Converta texto em português para linguagem de sinais de forma rápida e acessível.",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/og-image.svg",
+      "sizes": "1200x630",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "categories": ["education", "utilities", "accessibility"],
+  "lang": "pt-BR",
+  "scope": "/",
+  "display_override": ["window-controls-overlay", "standalone", "browser"]
+}

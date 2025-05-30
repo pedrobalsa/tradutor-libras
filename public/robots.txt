@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://traduzlibras.com/sitemap.xml
+
+# Otimizações específicas
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Bloquear arquivos desnecessários para SEO
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /src/
+Disallow: /*.json$
+Disallow: /*.ts$
+Disallow: /*.vue$
+
+# Permitir recursos importantes
+Allow: /assets/
+Allow: /favicon.ico
+Allow: /og-image.svg
+Allow: /site.webmanifest 

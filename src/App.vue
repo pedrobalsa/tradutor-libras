@@ -193,14 +193,14 @@ onMounted(() => {
           let screenHeight = window.innerHeight;
           let widgetWidth = screenWidth * 0.9;
           let rightPosition = (screenWidth - widgetWidth - 20) / 2;
-          if (screenWidth >= 1000) {
+          if (screenWidth >= 1280) {
             rightPosition = 10;
             widgetWidth = screenWidth / 2;
           }
           let height = screenHeight * 0.95;
-          if (screenWidth < 1000) height = height / 2;
+          if (screenWidth < 1280) height = height / 2;
           let bottomPosition = -(height / 2) + 20;
-          if (screenWidth < 1000) bottomPosition = -height + 30;
+          if (screenWidth < 1280) bottomPosition = -height + 30;
 
           widget.style.setProperty('position', 'fixed', 'important');
           widget.style.setProperty('top', 'auto', 'important');
@@ -275,60 +275,91 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
+  <main
     class="relative w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-screen max-xl:h-[90vh]"
+    role="main"
+    aria-label="Aplicativo Tradutor para Libras"
   >
     <!-- Input de texto para tradução -->
-    <div class="w-full xl:w-1/2 flex xl:h-full p-4 items-center justify-center">
+    <section
+      class="w-full xl:w-1/2 flex xl:h-full p-4 items-center justify-center"
+      aria-label="Seção de tradução de texto"
+    >
       <div
-        class="z-10 flex flex-col w-full xl:pt-10 pt-4 max-w-[500px] xl:h-[400px] justify-start gap-6 max-xl:gap-2 items-start"
+        class="z-10 flex flex-col w-full pt-4 max-w-[500px] xl:h-[430px] justify-start gap-6 max-xl:gap-2 items-start"
       >
-        <h1 class="xl:text-3xl text-2xl font-bold xl:mb-4">
+        <h1 class="xl:text-3xl text-2xl font-bold" id="main-title">
           Tradutor para Libras
         </h1>
-        <textarea
-          ref="inputRef"
-          v-model="inputText"
-          placeholder="Digitar texto"
-          class="w-full px-4 py-3 h-40 flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
-          @keydown="handleKeyDown"
-          @focus="handleFocus"
-          @blur="handleBlur"
-        >
-        </textarea>
-        <header
+        <p class="text-sm max-xl:text-xs">
+          Converta texto em português para linguagem de sinais de forma rápida e
+          acessível
+        </p>
+
+        <div class="w-full">
+          <label for="text-input" class="sr-only">
+            Digite o texto que deseja traduzir para Libras
+          </label>
+          <textarea
+            id="text-input"
+            ref="inputRef"
+            v-model="inputText"
+            placeholder="Digite o texto que você quer traduzir para Libras"
+            class="w-full px-4 py-3 h-40 max-lg:h-32 max-lg:text-sm flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
+            @keydown="handleKeyDown"
+            @focus="handleFocus"
+            @blur="handleBlur"
+            aria-describedby="input-instructions"
+            aria-label="Campo de texto para tradução"
+          >
+          </textarea>
+        </div>
+
+        <button
           @click="translateText"
-          class="w-full h-10 cursor-pointer bg-primary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none"
+          class="w-full h-10 cursor-pointer bg-primary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Traduzir texto para Libras"
+          :disabled="!inputText.trim()"
         >
           <span>Traduzir</span>
-          <i class="mdi ml-3 text-xl mdi-hand-clap"></i>
-        </header>
-        <div class="text-sm text-right xl:-mt-4 w-full">
-          <span class=""
+          <i class="mdi ml-3 text-xl mdi-hand-clap" aria-hidden="true"></i>
+        </button>
+
+        <div class="text-sm text-right xl:-mt-4 w-full" id="input-instructions">
+          <span class="max-lg:text-xs"
             >ou pressione <strong>Enter </strong>
-            <i class="mdi mdi-keyboard-return"></i> para traduzir</span
+            <i class="mdi mdi-keyboard-return" aria-hidden="true"></i> para
+            traduzir</span
           >
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Widget VLibras -->
-    <div vw class="enabled">
-      <div vw-access-button class="active" />
-      <div vw-plugin-wrapper>
-        <div class="vw-plugin-top-wrapper !shrink-0" />
+    <aside aria-label="Widget de tradução VLibras" role="complementary">
+      <div vw class="enabled">
+        <div vw-access-button class="active" />
+        <div vw-plugin-wrapper>
+          <div class="vw-plugin-top-wrapper !shrink-0" />
+        </div>
       </div>
-    </div>
+    </aside>
 
     <!-- Texto sendo traduzido -->
     <div
       v-if="traslatingText"
       class="fixed max-xl:hidden top-4 xl:right-[calc(50%-150px)] right-4 left-4 xl:left-auto xl:w-80 bg-white border border-gray-200 rounded-lg p-4 shadow-lg z-[9999999999]"
+      role="status"
+      aria-live="polite"
+      aria-label="Status da tradução"
     >
       <p class="text-sm text-gray-600 mb-1">Traduzindo:</p>
-      <p class="text-midnight font-medium line-clamp-2 text-ellipsis">
+      <p
+        class="text-midnight font-medium line-clamp-2 text-ellipsis"
+        aria-label="Texto sendo traduzido"
+      >
         {{ traslatingText }}
       </p>
     </div>
-  </div>
+  </main>
 </template>

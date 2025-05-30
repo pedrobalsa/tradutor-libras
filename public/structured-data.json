@@ -1,0 +1,149 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://traduzlibras.com/#webapp",
+      "name": "Tradutor para Libras",
+      "alternateName": "Tradutor Língua Brasileira de Sinais",
+      "description": "Aplicação web gratuita para tradução de texto em português para Libras (Língua Brasileira de Sinais). Ferramenta de acessibilidade e inclusão digital.",
+      "url": "https://traduzlibras.com/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "browserRequirements": "HTML5, JavaScript",
+      "softwareVersion": "1.0.0",
+      "releaseNotes": "Versão inicial com tradução básica para Libras",
+      "screenshot": "https://traduzlibras.com/screenshot.jpg",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "BRL",
+        "availability": "https://schema.org/InStock"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Tradutor Libras",
+        "url": "https://traduzlibras.com/"
+      },
+      "audience": [
+        {
+          "@type": "EducationalAudience",
+          "educationalRole": "student",
+          "audienceType": "Estudantes de Libras"
+        },
+        {
+          "@type": "Audience",
+          "audienceType": "Pessoas surdas e deficientes auditivos"
+        },
+        {
+          "@type": "ProfessionalAudience",
+          "audienceType": "Intérpretes de Libras"
+        },
+        {
+          "@type": "EducationalAudience",
+          "educationalRole": "teacher",
+          "audienceType": "Professores de educação especial"
+        }
+      ],
+      "accessibilityFeature": [
+        "signLanguage",
+        "visualInterface",
+        "textualInterface",
+        "keyboardNavigation",
+        "screenReaderSupport"
+      ],
+      "accessibilityHazard": "none",
+      "accessibilityAPI": "WAI-ARIA",
+      "accessMode": ["textual", "visual"],
+      "accessModeSufficient": [
+        {
+          "@type": "ItemList",
+          "itemListElement": ["textual", "visual"]
+        }
+      ],
+      "inLanguage": [
+        {
+          "@type": "Language",
+          "name": "Português Brasileiro",
+          "alternateName": "pt-BR"
+        },
+        {
+          "@type": "Language",
+          "name": "Libras",
+          "alternateName": "Língua Brasileira de Sinais"
+        }
+      ],
+      "educationalUse": [
+        "Aprendizado de Libras",
+        "Comunicação inclusiva",
+        "Acessibilidade digital",
+        "Tradução de sinais"
+      ],
+      "learningResourceType": "Interactive Tool",
+      "educationalAlignment": {
+        "@type": "AlignmentObject",
+        "alignmentType": "educationalSubject",
+        "educationalFramework": "Lei Brasileira de Inclusão",
+        "targetName": "Libras - Língua Brasileira de Sinais"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://traduzlibras.com/#organization",
+      "name": "Tradutor Libras",
+      "url": "https://traduzlibras.com/",
+      "logo": "https://traduzlibras.com/logo.png",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "technical support",
+        "areaServed": "BR",
+        "availableLanguage": ["Portuguese", "Libras"]
+      },
+      "description": "Organização dedicada a desenvolver ferramentas de acessibilidade e inclusão digital para a comunidade surda brasileira.",
+      "foundingDate": "2024",
+      "knowsAbout": [
+        "Libras",
+        "Língua Brasileira de Sinais",
+        "Acessibilidade",
+        "Inclusão Digital",
+        "Tradução de Sinais"
+      ],
+      "parentOrganization": {
+        "@type": "GovernmentOrganization",
+        "name": "Governo Federal - VLibras",
+        "url": "https://vlibras.gov.br/"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://traduzlibras.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "O que é Libras?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Libras é a Língua Brasileira de Sinais, reconhecida oficialmente como meio de comunicação e expressão das comunidades surdas do Brasil."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como funciona o tradutor?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O tradutor utiliza a tecnologia VLibras do governo federal para converter texto em português para linguagem de sinais visual."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "O tradutor é gratuito?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim, o tradutor é completamente gratuito e de acesso público, baseado na tecnologia VLibras."
+          }
+        }
+      ]
+    }
+  ]
+}
