@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, onUnmounted, watch } from 'vue';
+import { onMounted, ref, onUnmounted, watch, computed } from 'vue';
 import '../types/speech.d.ts';
 
 // ============================================================================
@@ -23,6 +23,23 @@ const translationQueue = ref<string[]>([]);
 const isTranslating = ref(false);
 const queueIndex = ref(0);
 
+// Estado para controle de viewport
+const windowHeight = ref(window.innerHeight);
+const windowWidth = ref(window.innerWidth);
+
+// Estado para controle do botão iniciar
+const isButtonReady = ref(false);
+
+// ============================================================================
+// COMPUTEDS
+// ============================================================================
+
+const halfScreenMargin = computed(() => {
+  // Aplicar margem apenas para desktop (xl breakpoint = 1280px)
+  const isDesktop = windowWidth.value >= 1280;
+  return isDesktop ? `${(windowHeight.value / 2) * 0.8}px` : '0px';
+});
+
 // ============================================================================
 // VARIÁVEIS GLOBAIS E REFS
 // ============================================================================
@@ -37,6 +54,11 @@ const queueItems = ref<HTMLElement[]>([]);
 // ============================================================================
 // FUNÇÕES DE CONFIGURAÇÃO E VERIFICAÇÃO
 // ============================================================================
+
+const updateWindowHeight = () => {
+  windowHeight.value = window.innerHeight;
+  windowWidth.value = window.innerWidth;
+};
 
 const checkSpeechSupport = () => {
   const SpeechRecognition =
@@ -188,6 +210,8 @@ const startRecognition = () => {
 };
 
 const startRecording = async () => {
+  if (!isButtonReady.value) return;
+
   if (!isSupported.value) {
     alert(
       'Reconhecimento de voz não é suportado neste navegador. Use Chrome, Safari ou Edge.'
@@ -233,12 +257,6 @@ const stopRecording = () => {
   }
 
   isRecording.value = false;
-};
-
-const clearTranscription = () => {
-  transcribedText.value = '';
-  currentTranscript.value = '';
-  finalTranscript.value = '';
 };
 
 // ============================================================================
@@ -423,6 +441,43 @@ onMounted(() => {
   checkSpeechSupport();
   checkMicrophonePermission();
   setupSpeechRecognition();
+  updateWindowHeight();
+
+  // Listener para atualizar altura da tela quando redimensionar
+  window.addEventListener('resize', updateWindowHeight);
+
+  // Habilitar botão após 5 segundos
+  setTimeout(() => {
+    isButtonReady.value = true;
+  }, 5000);
+
+  // Clicar no botão "Pular" do VLibras após 6 segundos
+  setTimeout(() => {
+    const skipButton = document.querySelector(
+      '.vpw-skip-welcome-message'
+    ) as HTMLElement;
+    if (skipButton) {
+      skipButton.click();
+    }
+  }, 6000);
+
+  // Observador para detectar o botão de velocidade e clicar nele
+  const speedButtonObserver = new MutationObserver(() => {
+    const speedButton = document.querySelector(
+      '.vpw-button-speed'
+    ) as HTMLElement;
+    if (speedButton && !speedButton.dataset.autoClicked) {
+      speedButton.dataset.autoClicked = 'true';
+      speedButton.click();
+      speedButtonObserver.disconnect(); // Parar de observar após clicar
+    }
+  });
+
+  // Observar mudanças no DOM para detectar o botão de velocidade
+  speedButtonObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 });
 
 onUnmounted(() => {
@@ -434,6 +489,9 @@ onUnmounted(() => {
     translationObserver.disconnect();
     translationObserver = null;
   }
+
+  // Remover listener de resize
+  window.removeEventListener('resize', updateWindowHeight);
 });
 </script>
 
@@ -451,7 +509,8 @@ onUnmounted(() => {
     >
       <!-- Controles sticky -->
       <div
-        class="sticky max-w-[500px] xl:mt-[100%] top-0 backdrop-blur-sm bg-midnight/20 z-20 py-4 w-full flex flex-col gap-4 pb-4 border-b border-primary/20"
+        class="sticky max-w-[500px] top-0 backdrop-blur-sm bg-midnight/20 z-20 py-4 w-full flex flex-col gap-4 pb-4 border-b border-primary/20"
+        :style="{ marginTop: halfScreenMargin }"
       >
         <div class="flex flex-col gap-4">
           <h1 class="xl:text-3xl text-xl font-bold" id="main-title">
@@ -468,47 +527,66 @@ onUnmounted(() => {
           <!-- Botão gravar/parar -->
           <header
             @click="isRecording ? stopRecording() : startRecording()"
-            :disabled="!isSupported || microphonePermission === 'denied'"
+            :disabled="
+              !isSupported ||
+              microphonePermission === 'denied' ||
+              !isButtonReady
+            "
             :class="[
-              'flex-1 h-12 hover:brightness-110 cursor-pointer rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-3',
-              isRecording
-                ? 'bg-red-500  text-white'
-                : 'bg-secondary  text-white disabled:bg-gray-300 disabled:cursor-not-allowed',
+              'flex-1 h-12 max-xl:h-10 hover:brightness-110 cursor-pointer rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-3',
+              !isButtonReady
+                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                : isRecording
+                  ? 'bg-red-500 text-white'
+                  : 'bg-secondary text-white disabled:bg-gray-300 disabled:cursor-not-allowed',
             ]"
             :aria-label="
-              isRecording ? 'Parar gravação' : 'Iniciar gravação de voz'
+              !isButtonReady
+                ? 'Carregando...'
+                : isRecording
+                  ? 'Parar gravação'
+                  : 'Iniciar gravação de voz'
             "
           >
-            <i
-              :class="[
-                'text-xl',
-                isRecording ? 'mdi mdi-stop' : 'mdi mdi-microphone',
-              ]"
-            ></i>
-            <span>{{ isRecording ? 'Parar' : 'Começar' }}</span>
+            <!-- Loading durante os primeiros 5 segundos -->
+            <template v-if="!isButtonReady">
+              <i class="mdi mdi-loading mdi-spin text-xl text-gray-700"></i>
+              <span class="text-gray-700">Carregando...</span>
+            </template>
 
-            <!-- Indicador de gravação ativa -->
-            <div
-              v-if="isRecording"
-              class="w-2 h-2 bg-white rounded-full animate-pulse"
-            ></div>
+            <!-- Estado normal após carregamento -->
+            <template v-else>
+              <i
+                :class="[
+                  'text-xl',
+                  isRecording ? 'mdi mdi-stop' : 'mdi mdi-microphone',
+                ]"
+              ></i>
+              <span>{{ isRecording ? 'Parar' : 'Começar' }}</span>
+
+              <!-- Indicador de gravação ativa -->
+              <div
+                v-if="isRecording"
+                class="w-2 h-2 bg-white rounded-full animate-pulse"
+              ></div>
+            </template>
           </header>
 
           <!-- Botão limpar fila -->
-          <button
+          <header
             @click="clearTranslationQueue"
             :disabled="translationQueue.length === 0"
             :class="[
-              'px-4 h-12 border-2 rounded-lg transition-colors duration-200',
+              'px-4 h-12 max-xl:h-10 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors duration-200',
               translationQueue.length > 0
-                ? 'border-red-300 text-red-600 hover:border-red-500 hover:text-red-700 hover:bg-red-50'
+                ? 'border-red-300 text-red-600 hover:border-red-500 hover:text-red-700 hover:bg-red-600/20'
                 : 'border-gray-300 text-gray-400 cursor-not-allowed opacity-50',
             ]"
             aria-label="Limpar lista de traduções"
             :title="`Limpar lista de traduções (${translationQueue.length} ${translationQueue.length === 1 ? 'item' : 'itens'})`"
           >
             <i class="mdi mdi-delete text-xl"></i>
-          </button>
+          </header>
         </div>
       </div>
       <div
@@ -578,7 +656,7 @@ onUnmounted(() => {
             >
               <div class="flex items-center justify-between">
                 <span>
-                  Fila: {{ queueIndex + 1 }}/{{ translationQueue.length }}
+                  Fila: {{ queueIndex }}/{{ translationQueue.length }}
                 </span>
                 <span v-if="isTranslating" class="text-secondary">
                   <i class="mdi mdi-translate mdi-spin mr-1"></i>

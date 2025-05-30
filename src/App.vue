@@ -53,11 +53,13 @@ onMounted(() => {
       const vlibrasBox = document.querySelector('.vpw-box') as HTMLElement;
 
       // Se o botão existir mas ainda não foi clicado automaticamente
-      if (button && !button.dataset.autoClicked) {
-        button.dataset.autoClicked = 'true';
-        button.click();
-        console.log('✅ Botão VLibras clicado automaticamente (App.vue)');
-      }
+      setTimeout(() => {
+        if (button && !button.dataset.autoClicked) {
+          button.dataset.autoClicked = 'true';
+          button.click();
+          console.log('✅ Botão VLibras clicado automaticamente (App.vue)');
+        }
+      }, 100);
 
       // Se a mensagem do tutorial aparecer, fechar automaticamente
       if (tutorialDenyBtn && !tutorialDenyBtn.dataset.autoClicked) {
