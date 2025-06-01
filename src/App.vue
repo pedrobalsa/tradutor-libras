@@ -58,7 +58,7 @@ onMounted(() => {
           button.click();
           console.log('✅ Botão VLibras clicado automaticamente (App.vue)');
         }
-      }, 100);
+      }, 300);
 
       // Se a mensagem do tutorial aparecer, fechar automaticamente
       if (tutorialDenyBtn && !tutorialDenyBtn.dataset.autoClicked) {

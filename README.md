@@ -86,6 +86,7 @@ Todos os eventos são enviados automaticamente durante o uso da aplicação, per
 - **Desktop**: Navegação horizontal no topo
 - **Mobile**: Menu hambúrguer com slide-in lateral
 - **Proteção VLibras**: Sistema robusto contra interferências do widget
+- **Teclado Mobile**: Recolhimento automático ao traduzir para melhor visualização do resultado
 
 ## ♿ Acessibilidade
 

@@ -15,6 +15,31 @@ const isTranslating = ref(false); // Controle para desabilitar foco automático
 // Track do tempo de carregamento da página
 const pageLoadStart = Date.now();
 
+// Função para detectar dispositivos móveis
+const isMobileDevice = () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobile =
+    /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+      userAgent
+    );
+  const isSmallScreen = window.innerWidth < 1024;
+  return isMobile || isSmallScreen;
+};
+
+// Função para recolher teclado mobile
+const hideKeyboardOnMobile = () => {
+  if (isMobileDevice() && inputRef.value) {
+    // Remover foco do input para esconder teclado
+    inputRef.value.blur();
+
+    // Prevenir que o auto-focus aconteça imediatamente
+    setTimeout(() => {
+      // Scroll para o topo para garantir que o VLibras seja visível
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  }
+};
+
 const translateText = (event?: Event) => {
   if (!inputText.value.trim()) return;
 
@@ -30,6 +55,9 @@ const translateText = (event?: Event) => {
     if (!inputText.value.trim()) return;
 
     const textLength = inputText.value.length;
+
+    // Recolher teclado mobile antes de iniciar tradução
+    hideKeyboardOnMobile();
 
     // Ativar modo de tradução
     isTranslating.value = true;
@@ -106,6 +134,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
     event.preventDefault();
 
+    // Recolher teclado mobile ao pressionar Enter
+    hideKeyboardOnMobile();
+
     translateText();
   }
 };
@@ -116,11 +147,21 @@ const handleFocus = () => {
     traslatingText.value = '';
     isTranslating.value = false;
   }
+
+  // Em mobile, quando o usuário toca no input após tradução, permitir nova edição
+  if (isMobileDevice() && isTranslating.value) {
+    isTranslating.value = false;
+  }
 };
 
 const handleBlur = () => {
   // Não fazer nada durante o modo de tradução
   if (isTranslating.value) {
+    return;
+  }
+
+  // Em dispositivos móveis, não retornar foco automaticamente
+  if (isMobileDevice()) {
     return;
   }
 
@@ -141,42 +182,48 @@ onMounted(() => {
   const loadTime = Date.now() - pageLoadStart;
   trackLoadTime('home', loadTime);
 
-  // Configurar foco inicial apenas se não há tradução
+  // Configurar foco inicial apenas se não há tradução e não é mobile
   setTimeout(() => {
-    if (!traslatingText.value && !isTranslating.value) {
+    if (!traslatingText.value && !isTranslating.value && !isMobileDevice()) {
       inputRef.value?.focus();
     }
   }, 500);
 
-  // Manter foco apenas quando necessário
+  // Manter foco apenas quando necessário (não em mobile)
   document.addEventListener('click', e => {
-    // Só redirecionar foco se não clicou no próprio input E não há tradução em andamento
+    // Só redirecionar foco se não clicou no próprio input E não há tradução em andamento E não é mobile
     if (
       e.target !== inputRef.value &&
       !traslatingText.value &&
-      !isTranslating.value
+      !isTranslating.value &&
+      !isMobileDevice()
     ) {
       setTimeout(() => {
         // Verificar novamente antes de focar
-        if (!isTranslating.value && !traslatingText.value) {
+        if (
+          !isTranslating.value &&
+          !traslatingText.value &&
+          !isMobileDevice()
+        ) {
           inputRef.value?.focus();
         }
       }, 50);
     }
   });
 
-  // Foco apenas em teclas especiais (não caracteres normais)
+  // Foco apenas em teclas especiais (não caracteres normais) e não em mobile
   document.addEventListener('keydown', e => {
-    // Só redirecionar foco se não está no input E é uma tecla especial E não há tradução em andamento
+    // Só redirecionar foco se não está no input E é uma tecla especial E não há tradução em andamento E não é mobile
     if (
       document.activeElement !== inputRef.value &&
       !traslatingText.value &&
       !isTranslating.value &&
+      !isMobileDevice() &&
       (e.key === 'Tab' || e.key === 'Escape' || e.metaKey || e.ctrlKey)
     ) {
       e.preventDefault();
       // Verificar novamente antes de focar
-      if (!isTranslating.value && !traslatingText.value) {
+      if (!isTranslating.value && !traslatingText.value && !isMobileDevice()) {
         inputRef.value?.focus();
       }
     }

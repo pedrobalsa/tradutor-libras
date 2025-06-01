@@ -101,7 +101,7 @@ onUnmounted(() => {
   <!-- Navegação Desktop -->
   <nav
     v-if="!isMobile"
-    class="w-full z-50 h-14 fixed top-10 gap-6 px-16 left-0 flex flex-row items-center justify-start"
+    class="w-full z-[1000] h-14 fixed top-10 gap-6 px-16 left-0 flex flex-row items-center justify-start"
     data-vlib-ignore="true"
   >
     <h1
@@ -151,15 +151,10 @@ onUnmounted(() => {
       @mousedown="toggleMenu"
       @click="toggleMenu"
       @touchstart="toggleMenu"
-      class="fixed top-4 right-4 z-[9999999999992] w-12 h-12 bg-secondary rounded-full flex items-center justify-center shadow-lg menu-button"
+      class="fixed top-4 right-4 z-[10000000] w-12 h-12 bg-secondary rounded-full flex items-center justify-center shadow-lg menu-button"
       data-vlib-ignore="true"
       data-no-translate="true"
       aria-label="Menu de navegação"
-      style="
-        pointer-events: auto !important;
-        position: fixed !important;
-        z-index: 9999999 !important;
-      "
     >
       <i
         :class="[
@@ -175,16 +170,16 @@ onUnmounted(() => {
     <div
       v-if="isMenuOpen"
       @click="closeMenu"
-      class="fixed inset-0 bg-black/50 z-[9999999990] backdrop-blur-sm"
+      class="fixed inset-0 bg-black/50 z-[10000001] backdrop-blur-sm"
     ></div>
 
     <!-- Menu Mobile -->
     <nav
       v-if="isMenuOpen"
-      class="fixed bottom-0 right-0 h-full w-80 max-w-[90vw] bg-midnight/50 border border-secondary backdrop-blur-md z-[9999999999999999999999999999] transform transition-transform duration-300 ease-in-out shadow-2xl"
+      class="fixed bottom-0 right-0 h-full w-80 max-w-[90vw] bg-midnight/50 border-b border-r border-secondary backdrop-blur-md z-[10000002] transform transition-transform duration-300 ease-in-out shadow-2xl"
       data-vlib-ignore="true"
     >
-      <div class="p-6 pt-20">
+      <div class="p-6">
         <!-- Logo Mobile -->
         <header class="mb-8 text-center" data-vlib-ignore="true">
           <h1 class="text-white text-2xl font-bold">
@@ -244,14 +239,12 @@ onUnmounted(() => {
 /* Garantir que os links de navegação funcionem corretamente */
 nav {
   pointer-events: auto !important;
-  z-index: 99999999999999999999999999 !important;
   position: relative !important;
 }
 
 nav .nav-link {
   pointer-events: auto !important;
   position: relative !important;
-  z-index: 99999999999999999999999999 !important;
   display: flex !important;
   cursor: pointer !important;
   user-select: none !important;
@@ -269,42 +262,28 @@ nav .nav-link:hover {
 .nav-link-mobile {
   pointer-events: auto !important;
   position: relative !important;
-  z-index: 99999999999999999999999999 !important;
   cursor: pointer !important;
   user-select: none !important;
   touch-action: manipulation !important;
 }
 
 /* Botão menu mobile */
-.mobile-navigation button,
 .menu-button {
   pointer-events: auto !important;
   touch-action: manipulation !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   position: fixed !important;
-  z-index: 99999999999999999999999999999999999 !important;
   isolation: isolate !important;
-}
-
-.menu-button * {
-  pointer-events: none !important;
-  user-select: none !important;
-}
-
-/* Forçar botão sempre funcionar */
-.menu-button {
   -webkit-appearance: none !important;
   appearance: none !important;
   border: none !important;
   outline: none !important;
 }
 
-.menu-button:active,
-.menu-button:focus,
-.menu-button:hover {
-  pointer-events: auto !important;
-  z-index: 999999999999999999999999999 !important;
+.menu-button * {
+  pointer-events: none !important;
+  user-select: none !important;
 }
 
 /* Animações para menu mobile */
@@ -313,29 +292,14 @@ nav .nav-link:hover {
 }
 
 /* Prevenir interferência do VLibras */
-nav [data-vlib-ignore] {
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 99999999999999999999999999 !important;
-}
-
-/* Forçar que elementos com data-vlib-ignore sejam clicáveis */
 [data-vlib-ignore] {
   pointer-events: auto !important;
   position: relative !important;
-  z-index: 99999999999999999999999999 !important;
 }
 
 /* Desabilitar seleção de texto nos links */
 nav a,
-nav a * {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-}
-
-/* Mobile specific styles */
+nav a *,
 .mobile-navigation a,
 .mobile-navigation a * {
   user-select: none !important;
@@ -352,14 +316,27 @@ nav a * {
 </style>
 
 <style>
-/* "SS Global par" desabilitar completamente VLibras na navegação */
+/* Forçar elementos VLibras ignore funcionarem */
 nav[data-vlib-ignore],
 nav[data-vlib-ignore] *,
 [data-vlib-ignore],
 [data-vlib-ignore] * {
   pointer-events: auto !important;
-  z-index: 99999999999999999999999999 !important;
   position: relative !important;
+}
+
+/* Garantir que navegação mobile fique acima do VLibras widget */
+.mobile-navigation button,
+.mobile-navigation .menu-button {
+  z-index: 10000000 !important;
+}
+
+.mobile-navigation div[class*='z-[10000001]'] {
+  z-index: 10000001 !important;
+}
+
+.mobile-navigation nav[class*='z-[10000002]'] {
+  z-index: 10000002 !important;
 }
 
 /* Prevenir que o VLibras capture eventos na navegação */
@@ -372,13 +349,12 @@ nav {
   touch-action: manipulation !important;
 }
 
-/* Botão menu mobile - proteção máxima */
+/* Botão menu mobile - proteção final */
 .menu-button,
 button.menu-button,
 [data-vlib-ignore].menu-button {
   pointer-events: auto !important;
   position: fixed !important;
-  z-index: 9999999 !important;
   isolation: isolate !important;
   touch-action: manipulation !important;
   -webkit-user-select: none !important;

@@ -56,7 +56,7 @@ let queueProcessingStartTime = 0;
 const halfScreenMargin = computed(() => {
   // Aplicar margem apenas para desktop (xl breakpoint = 1280px)
   const isDesktop = windowWidth.value >= 1280;
-  return isDesktop ? `${windowHeight.value / 2 - 200}px` : '0px';
+  return isDesktop ? `${windowHeight.value / 2 - 240}px` : '0px';
 });
 
 // ============================================================================
@@ -586,12 +586,12 @@ onUnmounted(() => {
     <!-- Interface de reconhecimento de voz -->
     <section
       ref="scrollSection"
-      class="w-full xl:w-[48%] max-xl:h-[50%] flex xl:h-full relative flex-col gap-8 p-4 pt-0 xl:pb-32 2xl:pb-64 items-center justify-start overflow-y-auto custom-scrollbar"
+      class="w-full xl:w-[48%] max-xl:h-[50%] flex xl:h-full relative flex-col gap-8 p-4 pt-0 xl:pb-28 2xl:pb-64 items-center justify-start overflow-y-auto custom-scrollbar"
       aria-label="Seção de reconhecimento de voz"
     >
       <!-- Controles sticky -->
       <div
-        class="sticky max-w-[500px] top-0 backdrop-blur-sm bg-midnight/20 z-20 py-4 w-full flex flex-col gap-4 pb-4 border-b border-primary/20"
+        class="sticky max-w-[500px] top-0 backdrop-blur-sm bg-midnight/20 z-20 py-4 xl:pt-14 w-full flex flex-col gap-4 pb-4 border-b border-primary/20"
         :style="{ marginTop: halfScreenMargin }"
       >
         <div class="flex flex-col gap-4">
@@ -758,7 +758,7 @@ onUnmounted(() => {
           <!-- Instruções iniciais -->
           <div
             v-if="!finalTranscript && !currentTranscript"
-            class="w-full text-sm max-xl:-mt-10 text-white-smoke"
+            class="w-full text-sm max-2xl:-mt-10 text-white-smoke"
           >
             <div
               class="border border-primary flex flex-col max-xl:gap-2 gap-4 rounded-lg max-xl:p-2 p-4"
