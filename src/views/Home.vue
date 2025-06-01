@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import {
+  trackTranslation,
+  trackLoadTime,
+  trackAccessibilityFeature,
+  trackError,
+} from '../utils/analytics';
 
 const inputText = ref('');
 const traslatingText = ref('');
 const inputRef = ref<HTMLTextAreaElement | null>(null);
 const isTranslating = ref(false); // Controle para desabilitar foco automático
+
+// Track do tempo de carregamento da página
+const pageLoadStart = Date.now();
 
 const translateText = (event?: Event) => {
   if (!inputText.value.trim()) return;
@@ -20,64 +29,83 @@ const translateText = (event?: Event) => {
   setTimeout(() => {
     if (!inputText.value.trim()) return;
 
+    const textLength = inputText.value.length;
+
     // Ativar modo de tradução
     isTranslating.value = true;
 
-    // Criar um elemento temporário com o texto para ser "clicado"
-    const tempElement = document.createElement('span');
-    tempElement.textContent = inputText.value;
-    tempElement.style.position = 'absolute';
-    tempElement.style.left = '-9999px'; // Esconder fora da tela
-    tempElement.style.top = '-9999px';
-    tempElement.style.pointerEvents = 'auto';
-    tempElement.style.cursor = 'pointer';
+    // Track do início da tradução
+    trackAccessibilityFeature('basic_translation');
 
-    // Adicionar ao body temporariamente
-    document.body.appendChild(tempElement);
+    try {
+      // Criar um elemento temporário com o texto para ser "clicado"
+      const tempElement = document.createElement('span');
+      tempElement.textContent = inputText.value;
+      tempElement.style.position = 'absolute';
+      tempElement.style.left = '-9999px'; // Esconder fora da tela
+      tempElement.style.top = '-9999px';
+      tempElement.style.pointerEvents = 'auto';
+      tempElement.style.cursor = 'pointer';
 
-    // Simular um clique no elemento para ativar a tradução VLibras
-    setTimeout(() => {
-      const clickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-      });
+      // Adicionar ao body temporariamente
+      document.body.appendChild(tempElement);
 
-      tempElement.dispatchEvent(clickEvent);
-
-      // Ativar legendas automaticamente após iniciar tradução
+      // Simular um clique no elemento para ativar a tradução VLibras
       setTimeout(() => {
-        const subtitlesButton = document.querySelector(
-          '.vpw-controls-subtitles'
-        ) as HTMLElement;
-        if (subtitlesButton && !subtitlesButton.dataset.autoClicked) {
-          subtitlesButton.dataset.autoClicked = 'true';
-          subtitlesButton.click();
-        }
-      }, 1500);
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
 
-      // Remover o elemento após um tempo
+        tempElement.dispatchEvent(clickEvent);
+
+        // Track da tradução bem-sucedida
+        trackTranslation(textLength, 'manual');
+
+        // Ativar legendas automaticamente após iniciar tradução
+        setTimeout(() => {
+          const subtitlesButton = document.querySelector(
+            '.vpw-controls-subtitles'
+          ) as HTMLElement;
+          if (subtitlesButton && !subtitlesButton.dataset.autoClicked) {
+            subtitlesButton.dataset.autoClicked = 'true';
+            subtitlesButton.click();
+          }
+        }, 1500);
+
+        // Remover o elemento após um tempo
+        setTimeout(() => {
+          if (tempElement.parentNode) {
+            document.body.removeChild(tempElement);
+          }
+        }, 1000);
+      }, 100);
+
+      // Limpar o input e definir o texto de tradução imediatamente
+      traslatingText.value = inputText.value;
+      inputText.value = '';
+
+      // Desativar modo de tradução após 10 segundos automaticamente
       setTimeout(() => {
-        if (tempElement.parentNode) {
-          document.body.removeChild(tempElement);
-        }
-      }, 1000);
-    }, 100);
-
-    // Limpar o input e definir o texto de tradução imediatamente
-    traslatingText.value = inputText.value;
-    inputText.value = '';
-
-    // Desativar modo de tradução após 10 segundos automaticamente
-    setTimeout(() => {
+        isTranslating.value = false;
+      }, 10000);
+    } catch (error) {
+      // Track de erro na tradução
+      trackError(
+        'translation_error',
+        error?.toString() || 'Erro desconhecido',
+        'basic_translation'
+      );
       isTranslating.value = false;
-    }, 10000);
+    }
   }, 0);
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
     event.preventDefault();
+
     translateText();
   }
 };
@@ -109,6 +137,10 @@ const handleBlur = () => {
 };
 
 onMounted(() => {
+  // Track do tempo de carregamento da página
+  const loadTime = Date.now() - pageLoadStart;
+  trackLoadTime('home', loadTime);
+
   // Configurar foco inicial apenas se não há tradução
   setTimeout(() => {
     if (!traslatingText.value && !isTranslating.value) {

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
+import { trackPage, trackNavigation } from '../utils/analytics';
 
 // Importar componentes de forma lazy
 const Home = () => import('../views/Home.vue');
@@ -11,10 +12,9 @@ const routes: RouteRecordRaw[] = [
     name: 'Home',
     component: Home,
     meta: {
-      title:
-        'Tradutor para Libras Online Gratuito | Tradução em Língua Brasileira de Sinais',
+      title: 'Traduz Libras | Tradutor Online para Língua Brasileira de Sinais',
       description:
-        'Tradutor online gratuito para Libras (Língua Brasileira de Sinais). Converta texto em português para linguagem de sinais de forma rápida e acessível.',
+        'Traduz Libras: tradutor online gratuito para Libras. Converta texto em português para Língua Brasileira de Sinais de forma rápida e acessível. Interface moderna e intuitiva.',
     },
   },
   {
@@ -22,9 +22,9 @@ const routes: RouteRecordRaw[] = [
     name: 'TraducaoSimultanea',
     component: TraducaoSimultanea,
     meta: {
-      title: 'Tradução Simultânea para Libras | Tradutor Libras',
+      title: 'Tradução Simultânea para Libras | Traduz Libras',
       description:
-        'Tradução simultânea para Libras com detecção automática do fim da tradução. Acompanhe o progresso em tempo real e controle a reprodução.',
+        'Tradução simultânea para Libras com reconhecimento de voz em tempo real. Fale em português e veja a tradução instantânea em Língua Brasileira de Sinais com controle de fila.',
     },
   },
   {
@@ -46,7 +46,7 @@ const router = createRouter({
   },
 });
 
-// Atualizar meta tags em mudanças de rota
+// Atualizar meta tags e tracking em mudanças de rota
 router.beforeEach((to, _from, next) => {
   // Atualizar título da página
   if (to.meta?.title) {
@@ -62,6 +62,25 @@ router.beforeEach((to, _from, next) => {
   }
 
   next();
+});
+
+// Tracking após mudança de rota
+router.afterEach((to, from) => {
+  // Track page view
+  const pageTitle = (to.meta?.title as string) || 'Traduz Libras';
+  const pageLocation = window.location.href;
+
+  // Delay para garantir que a página carregou
+  setTimeout(() => {
+    trackPage(pageTitle, pageLocation);
+  }, 100);
+
+  // Track navigation se não for a primeira visita
+  if (from.name) {
+    const fromPage = from.name as string;
+    const toPage = to.name as string;
+    trackNavigation(fromPage, toPage);
+  }
 });
 
 export default router;

@@ -30,12 +30,12 @@
     
     <!-- Title -->
     <text x="250" y="180" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">
-      Tradutor para Libras
+      Traduz Libras
     </text>
     
     <!-- Subtitle -->
     <text x="250" y="240" font-family="Arial, sans-serif" font-size="36" fill="white" opacity="0.9">
-      Tradução Online Gratuita
+      Tradutor Online Completo
     </text>
     
     <!-- Description -->
@@ -46,13 +46,13 @@
     <!-- Features -->
     <g transform="translate(250, 340)">
       <text x="0" y="0" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">
-        ✓ Gratuito e Acessível
+        ✓ Tradução Básica e Simultânea
       </text>
       <text x="0" y="35" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">
-        ✓ Tecnologia VLibras
+        ✓ Reconhecimento de Voz
       </text>
       <text x="0" y="70" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">
-        ✓ Inclusão Digital
+        ✓ Gratuito e Acessível
       </text>
     </g>
     
@@ -72,6 +72,13 @@
   <g transform="translate(900, 300)">
     <circle cx="0" cy="0" r="25" fill="white" opacity="0.15"/>
     <polygon points="15,12 28,20 20,20" fill="white" opacity="0.15"/>
+  </g>
+  
+  <!-- Microphone icon for speech recognition -->
+  <g transform="translate(850, 450)">
+    <rect x="0" y="0" width="20" height="30" rx="10" fill="white" opacity="0.3"/>
+    <rect x="5" y="35" width="10" height="8" fill="white" opacity="0.3"/>
+    <line x1="10" y1="43" x2="10" y2="50" stroke="white" stroke-width="2" opacity="0.3"/>
   </g>
   
 </svg> 

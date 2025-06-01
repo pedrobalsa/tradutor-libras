@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref, onUnmounted, watch, computed } from 'vue';
 import '../types/speech.d.ts';
+import {
+  trackSimultaneousTranslationStart,
+  trackSimultaneousTranslationStop,
+  trackVoiceRecognitionError,
+  trackTranslationQueueProcessed,
+  trackLoadTime,
+  trackAccessibilityFeature,
+  trackFeatureUsage,
+  trackError,
+} from '../utils/analytics';
 
 // ============================================================================
 // ESTADOS REATIVOS
@@ -29,6 +39,15 @@ const windowWidth = ref(window.innerWidth);
 
 // Estado para controle do botão iniciar
 const isButtonReady = ref(false);
+
+// ============================================================================
+// VARIÁVEIS DE TRACKING
+// ============================================================================
+
+const pageLoadStart = Date.now();
+let sessionStartTime = 0;
+let totalWordsTranslated = 0;
+let queueProcessingStartTime = 0;
 
 // ============================================================================
 // COMPUTEDS
@@ -130,6 +149,9 @@ const setupSpeechRecognition = () => {
   };
 
   recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    // Track do erro
+    trackVoiceRecognitionError(event.error);
+
     switch (event.error) {
       case 'not-allowed':
         microphonePermission.value = 'denied';
@@ -213,6 +235,11 @@ const startRecording = async () => {
   if (!isButtonReady.value) return;
 
   if (!isSupported.value) {
+    trackError(
+      'browser_not_supported',
+      'Speech recognition not supported',
+      'voice_recording'
+    );
     alert(
       'Reconhecimento de voz não é suportado neste navegador. Use Chrome, Safari ou Edge.'
     );
@@ -220,6 +247,11 @@ const startRecording = async () => {
   }
 
   if (microphonePermission.value === 'denied') {
+    trackError(
+      'microphone_permission_denied',
+      'Microphone access denied',
+      'voice_recording'
+    );
     alert(
       'Permissão para microfone negada. Por favor, permita o acesso ao microfone nas configurações do navegador.'
     );
@@ -230,9 +262,16 @@ const startRecording = async () => {
     await navigator.mediaDevices.getUserMedia({ audio: true });
     microphonePermission.value = 'granted';
 
+    // Reset de variáveis
     transcribedText.value = '';
     currentTranscript.value = '';
     finalTranscript.value = '';
+    totalWordsTranslated = 0;
+
+    // Iniciar tracking da sessão
+    sessionStartTime = Date.now();
+    trackSimultaneousTranslationStart();
+    trackAccessibilityFeature('simultaneous_translation');
 
     shouldKeepRecording.value = true;
     isRestarting.value = false;
@@ -242,6 +281,11 @@ const startRecording = async () => {
     }
   } catch (error) {
     microphonePermission.value = 'denied';
+    trackError(
+      'microphone_access_failed',
+      error?.toString() || 'Unknown error',
+      'voice_recording'
+    );
     alert(
       'Não foi possível acessar o microfone. Verifique as permissões do navegador.'
     );
@@ -257,6 +301,13 @@ const stopRecording = () => {
   }
 
   isRecording.value = false;
+
+  // Track do fim da sessão
+  if (sessionStartTime > 0) {
+    const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+    trackSimultaneousTranslationStop(sessionDuration, totalWordsTranslated);
+    sessionStartTime = 0;
+  }
 };
 
 // ============================================================================
@@ -362,13 +413,35 @@ const processNextInQueue = () => {
     }, 1000);
   } else {
     isTranslating.value = false;
+
+    // Track do processamento completo da fila
+    if (queueProcessingStartTime > 0) {
+      const processingDuration = Math.round(
+        (Date.now() - queueProcessingStartTime) / 1000
+      );
+      trackTranslationQueueProcessed(
+        translationQueue.value.length,
+        processingDuration
+      );
+      queueProcessingStartTime = 0;
+    }
   }
 };
 
 const clearTranslationQueue = () => {
+  const queueLengthBeforeClear = translationQueue.value.length;
+
   translationQueue.value = [];
   queueIndex.value = 0;
   isTranslating.value = false;
+
+  // Track da limpeza da fila
+  if (queueLengthBeforeClear > 0) {
+    trackFeatureUsage('clear_translation_queue', {
+      items_cleared: queueLengthBeforeClear,
+      user_action: 'manual_clear',
+    });
+  }
 };
 
 // ============================================================================
@@ -410,10 +483,15 @@ watch(finalTranscript, (newValue, oldValue) => {
     const newText = newValue.slice(oldValue?.length || 0).trim();
 
     if (newText) {
+      // Contar palavras traduzidas
+      const wordCount = newText.split(/\s+/).length;
+      totalWordsTranslated += wordCount;
+
       translationQueue.value.push(newText);
 
       if (!isTranslating.value) {
         isTranslating.value = true;
+        queueProcessingStartTime = Date.now();
 
         if (queueIndex.value >= translationQueue.value.length - 1) {
           queueIndex.value = translationQueue.value.length - 1;
@@ -438,6 +516,10 @@ watch(queueIndex, () => {
 });
 
 onMounted(() => {
+  // Track do tempo de carregamento da página
+  const loadTime = Date.now() - pageLoadStart;
+  trackLoadTime('simultaneous_translation', loadTime);
+
   checkSpeechSupport();
   checkMicrophonePermission();
   setupSpeechRecognition();

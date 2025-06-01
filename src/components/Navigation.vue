@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { ref, onMounted, onUnmounted } from 'vue';
+import { trackMobileMenuUsage } from '../utils/analytics';
 
 const route = useRoute();
 const router = useRouter();
@@ -24,7 +25,13 @@ const toggleMenu = (event?: Event) => {
 
   // Usar setTimeout para garantir que execute mesmo com interferência
   setTimeout(() => {
+    const wasOpening = !isMenuOpen.value;
     isMenuOpen.value = !isMenuOpen.value;
+
+    // Track apenas quando abre o menu
+    if (wasOpening && isMenuOpen.value) {
+      trackMobileMenuUsage();
+    }
   }, 0);
 };
 

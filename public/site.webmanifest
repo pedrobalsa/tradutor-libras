@@ -1,7 +1,7 @@
 {
-  "name": "Tradutor para Libras - Língua Brasileira de Sinais",
-  "short_name": "Tradutor Libras",
-  "description": "Tradutor online gratuito para Libras (Língua Brasileira de Sinais). Converta texto em português para linguagem de sinais de forma rápida e acessível.",
+  "name": "Traduz Libras - Tradutor para Língua Brasileira de Sinais",
+  "short_name": "Traduz Libras",
+  "description": "Tradutor online gratuito para Libras com tradução básica e simultânea. Converta texto e fala em português para Língua Brasileira de Sinais de forma rápida e acessível.",
   "icons": [
     {
       "src": "/favicon-16x16.png",
