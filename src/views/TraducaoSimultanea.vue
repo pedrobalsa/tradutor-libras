@@ -37,7 +37,7 @@ const isButtonReady = ref(false);
 const halfScreenMargin = computed(() => {
   // Aplicar margem apenas para desktop (xl breakpoint = 1280px)
   const isDesktop = windowWidth.value >= 1280;
-  return isDesktop ? `${(windowHeight.value / 2) * 0.8}px` : '0px';
+  return isDesktop ? `${windowHeight.value / 2 - 200}px` : '0px';
 });
 
 // ============================================================================
@@ -497,14 +497,14 @@ onUnmounted(() => {
 
 <template>
   <main
-    class="w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-screen max-xl:h-[90vh]"
+    class="w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-[90vh]"
     role="main"
     aria-label="Tradutor simultâneo para Libras"
   >
     <!-- Interface de reconhecimento de voz -->
     <section
       ref="scrollSection"
-      class="w-full xl:w-[48%] max-xl:h-[50%] flex xl:h-full relative flex-col gap-8 p-4 pt-0 xl:pb-64 items-center justify-start overflow-y-auto custom-scrollbar"
+      class="w-full xl:w-[48%] max-xl:h-[50%] flex xl:h-full relative flex-col gap-8 p-4 pt-0 xl:pb-32 2xl:pb-64 items-center justify-start overflow-y-auto custom-scrollbar"
       aria-label="Seção de reconhecimento de voz"
     >
       <!-- Controles sticky -->
@@ -513,7 +513,7 @@ onUnmounted(() => {
         :style="{ marginTop: halfScreenMargin }"
       >
         <div class="flex flex-col gap-4">
-          <h1 class="xl:text-3xl text-xl font-bold" id="main-title">
+          <h1 class="xl:text-3xl max-xl:w-64 text-xl font-bold" id="main-title">
             Tradutor simultâneo para
             <strong class="text-secondary">Libras</strong>
           </h1>
@@ -676,18 +676,20 @@ onUnmounted(() => {
           <!-- Instruções iniciais -->
           <div
             v-if="!finalTranscript && !currentTranscript"
-            class="w-full text-sm text-white-smoke"
+            class="w-full text-sm max-xl:-mt-10 text-white-smoke"
           >
             <div
-              class="border border-primary flex flex-col gap-4 rounded-lg p-4"
+              class="border border-primary flex flex-col max-xl:gap-2 gap-4 rounded-lg max-xl:p-2 p-4"
             >
-              <div class="flex items-center flex-row gap-4">
+              <div class="flex items-center flex-row gap-4 max-xl:gap-2">
                 <i class="mdi mdi-information text-secondary text-lg"></i>
                 <p class="font-medium">Como usar:</p>
               </div>
 
               <ul class="text-xs space-y-1 pl-4">
-                <li>• Clique em "Falar" para começar</li>
+                <li>
+                  • Clique em "Começar" para iniciar a tradução simultânea
+                </li>
                 <li>• Fale claramente em português</li>
                 <li>• A transcrição aparece em tempo real</li>
                 <li>• A tradução aparece em tempo real</li>

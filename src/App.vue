@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-
-// App.vue agora funciona como layout principal
+import Navigation from './components/Navigation.vue';
 
 // Configuração e inicialização do VLibras
 onMounted(() => {
@@ -139,6 +138,7 @@ onMounted(() => {
 
 <template>
   <div id="app">
+    <Navigation />
     <!-- Widget VLibras (compartilhado entre todas as páginas) -->
     <aside aria-label="Widget de tradução VLibras" role="complementary">
       <div vw class="enabled">
@@ -149,7 +149,8 @@ onMounted(() => {
       </div>
     </aside>
 
-    <!-- Router view para renderizar os componentes das rotas -->
+    <!-- Componente de navegação -->
+
     <router-view />
   </div>
 </template>

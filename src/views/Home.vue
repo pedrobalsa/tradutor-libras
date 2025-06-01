@@ -6,19 +6,23 @@ const traslatingText = ref('');
 const inputRef = ref<HTMLTextAreaElement | null>(null);
 const isTranslating = ref(false); // Controle para desabilitar foco automático
 
-const translateText = () => {
+const translateText = (event?: Event) => {
   if (!inputText.value.trim()) return;
 
-  // Ativar modo de tradução
-  isTranslating.value = true;
-
-  // Fazer o teclado recuar em dispositivos móveis
-  if (inputRef.value) {
-    inputRef.value.blur();
+  // Prevenir interferência do VLibras
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
   }
 
-  // Aguardar um pouco para garantir que o blur foi processado
+  // Usar setTimeout para garantir execução mesmo com interferência
   setTimeout(() => {
+    if (!inputText.value.trim()) return;
+
+    // Ativar modo de tradução
+    isTranslating.value = true;
+
     // Criar um elemento temporário com o texto para ser "clicado"
     const tempElement = document.createElement('span');
     tempElement.textContent = inputText.value;
@@ -68,7 +72,7 @@ const translateText = () => {
     setTimeout(() => {
       isTranslating.value = false;
     }, 10000);
-  }, 200); // Delay para garantir que o blur foi processado
+  }, 0);
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
@@ -145,12 +149,38 @@ onMounted(() => {
       }
     }
   });
+
+  // Fallback para garantir que o botão de tradução sempre funcione
+  setTimeout(() => {
+    const translateButton = document.querySelector(
+      '.translate-button'
+    ) as HTMLElement;
+    if (translateButton) {
+      // Adicionar listeners direto no DOM como backup
+      const forceTranslate = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        translateText(e);
+      };
+
+      translateButton.addEventListener('mousedown', forceTranslate, {
+        capture: true,
+      });
+      translateButton.addEventListener('touchstart', forceTranslate, {
+        capture: true,
+      });
+      translateButton.addEventListener('click', forceTranslate, {
+        capture: true,
+      });
+    }
+  }, 1000);
 });
 </script>
 
 <template>
   <main
-    class="relative w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-screen max-xl:h-[90vh]"
+    class="relative w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-[90vh]"
     role="main"
     aria-label="Aplicativo Tradutor para Libras"
   >
@@ -163,7 +193,7 @@ onMounted(() => {
         class="z-10 flex flex-col w-full pt-4 max-w-[500px] xl:h-[430px] justify-start gap-6 max-xl:gap-2 items-start"
       >
         <h1 class="xl:text-3xl text-2xl font-bold" id="main-title">
-          Tradutor para Libras
+          Tradutor para <strong class="text-secondary">Libras</strong>
         </h1>
         <p class="text-sm max-xl:text-xs">
           Converta texto em português para linguagem de sinais de forma rápida e
@@ -190,13 +220,21 @@ onMounted(() => {
         </div>
 
         <button
+          @mousedown="translateText"
           @click="translateText"
-          class="w-full h-10 cursor-pointer bg-primary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          @touchstart="translateText"
+          class="w-full h-10 cursor-pointer bg-secondary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 translate-button"
           aria-label="Traduzir texto para Libras"
           :disabled="!inputText.trim()"
+          data-vlib-ignore="true"
+          data-no-translate="true"
         >
-          <span>Traduzir</span>
-          <i class="mdi ml-3 text-xl mdi-hand-clap" aria-hidden="true"></i>
+          <span data-vlib-ignore="true">Traduzir</span>
+          <i
+            class="mdi ml-3 text-xl mdi-hand-clap"
+            aria-hidden="true"
+            data-vlib-ignore="true"
+          ></i>
         </button>
 
         <div class="text-sm text-right xl:-mt-4 w-full" id="input-instructions">
@@ -227,3 +265,47 @@ onMounted(() => {
     </div>
   </main>
 </template>
+
+<style scoped>
+/* Proteger botão de tradução contra interferência do VLibras */
+.translate-button {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 999999 !important;
+  isolation: isolate !important;
+  touch-action: manipulation !important;
+}
+
+.translate-button * {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.translate-button[data-vlib-ignore] {
+  pointer-events: auto !important;
+}
+
+/* Forçar que elementos com data-vlib-ignore sejam clicáveis */
+[data-vlib-ignore] {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 999999 !important;
+}
+</style>
+
+<style>
+/* CSS Global para proteger botão de tradução */
+.translate-button,
+button.translate-button,
+[data-vlib-ignore].translate-button {
+  pointer-events: auto !important;
+  z-index: 999999 !important;
+  isolation: isolate !important;
+  touch-action: manipulation !important;
+}
+
+.translate-button[data-vlib-ignore] * {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+</style>
