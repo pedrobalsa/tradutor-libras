@@ -231,3 +231,77 @@ export const trackError = (
     },
   });
 };
+
+// Eventos de histórico de traduções
+export const trackRetranslate = (
+  textLength: number,
+  source: 'history' | 'mobile_dialog' = 'history'
+): void => {
+  trackEvent({
+    action: 'retranslate_clicked',
+    category: 'translation',
+    label: 'history_retranslate',
+    value: textLength,
+    custom_parameters: {
+      feature_used: 'history_retranslate',
+      text_length_category:
+        textLength < 50 ? 'short' : textLength < 200 ? 'medium' : 'long',
+      retranslate_source: source,
+      user_action: 'retranslate_from_history',
+    },
+  });
+};
+
+export const trackVideoDownload = (
+  videoSize: number,
+  translationId: string,
+  textLength: number
+): void => {
+  trackEvent({
+    action: 'video_downloaded',
+    category: 'translation',
+    label: 'video_download',
+    value: videoSize,
+    custom_parameters: {
+      feature_used: 'video_download',
+      video_size_bytes: videoSize,
+      video_size_mb: Math.round((videoSize / (1024 * 1024)) * 100) / 100,
+      translation_id: translationId,
+      text_length: textLength,
+      text_length_category:
+        textLength < 50 ? 'short' : textLength < 200 ? 'medium' : 'long',
+      user_action: 'download_translation_video',
+    },
+  });
+};
+
+export const trackHistoryDialogOpen = (): void => {
+  trackEvent({
+    action: 'history_dialog_opened',
+    category: 'ui_interaction',
+    label: 'mobile_history_dialog',
+    custom_parameters: {
+      feature_used: 'mobile_history_dialog',
+      device_type: 'mobile',
+      ui_element: 'history_dialog',
+      user_action: 'open_history',
+    },
+  });
+};
+
+export const trackHistoryDialogClose = (
+  method: 'button' | 'overlay' | 'retranslate' = 'button'
+): void => {
+  trackEvent({
+    action: 'history_dialog_closed',
+    category: 'ui_interaction',
+    label: 'mobile_history_dialog',
+    custom_parameters: {
+      feature_used: 'mobile_history_dialog',
+      device_type: 'mobile',
+      ui_element: 'history_dialog',
+      close_method: method,
+      user_action: 'close_history',
+    },
+  });
+};

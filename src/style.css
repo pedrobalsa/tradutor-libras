@@ -43,3 +43,104 @@ textarea,
 input {
   font-family: var(--font-body);
 }
+
+/* ========================================
+   PROTEÇÃO GLOBAL CONTRA INTERFERÊNCIA DO VLIBRAS
+   ======================================== */
+
+/* Proteger todos os botões do site */
+button,
+[role='button'],
+input[type='button'],
+input[type='submit'],
+input[type='reset'],
+a[href],
+[data-vlib-ignore],
+[data-no-translate],
+.translate-button {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 99999999 !important;
+  isolation: isolate !important;
+  touch-action: manipulation !important;
+}
+
+/* Evitar que elementos filhos interfiram com os cliques */
+button *,
+[role='button'] *,
+input[type='button'] *,
+input[type='submit'] *,
+input[type='reset'] *,
+.translate-button * {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Garantir que ícones dentro de botões não bloqueiem cliques */
+button i,
+[role='button'] i,
+.translate-button i {
+  pointer-events: none !important;
+  user-select: none !important;
+  display: inline-block;
+}
+
+/* Proteção específica para elementos marcados como ignoráveis pelo VLibras */
+[data-vlib-ignore],
+[data-no-translate] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 99999999 !important;
+}
+
+/* Proteção para navegação e áreas interativas */
+nav,
+nav *,
+[role='navigation'],
+[role='navigation'] * {
+  pointer-events: auto !important;
+}
+
+/* Garantir que links sejam sempre clicáveis */
+a {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+a * {
+  pointer-events: none !important;
+}
+
+/* Proteção extra para elementos críticos */
+.translate-button,
+button.translate-button,
+[data-vlib-ignore].translate-button,
+[data-no-translate].translate-button {
+  pointer-events: auto !important;
+  z-index: 999999999 !important;
+  isolation: isolate !important;
+  touch-action: manipulation !important;
+  cursor: pointer !important;
+}
+
+/* Prevenir que o VLibras adicione estilos aos botões protegidos */
+button[data-vlib-ignore],
+button[data-no-translate],
+[data-vlib-ignore] button,
+[data-no-translate] button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Garantir que elementos interativos em áreas protegidas funcionem */
+[data-vlib-ignore] button,
+[data-vlib-ignore] a,
+[data-vlib-ignore] [role='button'],
+[data-no-translate] button,
+[data-no-translate] a,
+[data-no-translate] [role='button'] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: inherit !important;
+}

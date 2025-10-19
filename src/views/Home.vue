@@ -1,16 +1,34 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import {
-  trackTranslation,
   trackLoadTime,
-  trackAccessibilityFeature,
-  trackError,
+  trackHistoryDialogOpen,
+  trackHistoryDialogClose,
 } from '../utils/analytics';
+import { useTranslate } from '../utils/useTranslate';
+import Historic from '../components/Historic.vue';
+import MobileDialog from '../components/MobileDialog.vue';
 
 const inputText = ref('');
-const traslatingText = ref('');
 const inputRef = ref<HTMLTextAreaElement | null>(null);
-const isTranslating = ref(false); // Controle para desabilitar foco automático
+const showHistoryDialog = ref(false);
+
+// Usar o composable para tradução (histórico gerenciado automaticamente pelo composable)
+const {
+  isTranslating,
+  translatingText,
+  translateText: handleTranslateText,
+} = useTranslate({
+  onTranslationStart: () => {
+    // Callback opcional para ações quando tradução inicia
+  },
+  onTranslationComplete: () => {
+    // Callback opcional para ações quando tradução completa
+  },
+  onTranslationError: error => {
+    console.error('Erro na tradução:', error);
+  },
+});
 
 // Track do tempo de carregamento da página
 const pageLoadStart = Date.now();
@@ -51,81 +69,20 @@ const translateText = (event?: Event) => {
   }
 
   // Usar setTimeout para garantir execução mesmo com interferência
-  setTimeout(() => {
+  setTimeout(async () => {
     if (!inputText.value.trim()) return;
-
-    const textLength = inputText.value.length;
 
     // Recolher teclado mobile antes de iniciar tradução
     hideKeyboardOnMobile();
 
-    // Ativar modo de tradução
-    isTranslating.value = true;
-
-    // Track do início da tradução
-    trackAccessibilityFeature('basic_translation');
-
     try {
-      // Criar um elemento temporário com o texto para ser "clicado"
-      const tempElement = document.createElement('span');
-      tempElement.textContent = inputText.value;
-      tempElement.style.position = 'absolute';
-      tempElement.style.left = '-9999px'; // Esconder fora da tela
-      tempElement.style.top = '-9999px';
-      tempElement.style.pointerEvents = 'auto';
-      tempElement.style.cursor = 'pointer';
+      // Usar o composable para realizar a tradução
+      await handleTranslateText(inputText.value, 'manual');
 
-      // Adicionar ao body temporariamente
-      document.body.appendChild(tempElement);
-
-      // Simular um clique no elemento para ativar a tradução VLibras
-      setTimeout(() => {
-        const clickEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        });
-
-        tempElement.dispatchEvent(clickEvent);
-
-        // Track da tradução bem-sucedida
-        trackTranslation(textLength, 'manual');
-
-        // Ativar legendas automaticamente após iniciar tradução
-        setTimeout(() => {
-          const subtitlesButton = document.querySelector(
-            '.vpw-controls-subtitles'
-          ) as HTMLElement;
-          if (subtitlesButton && !subtitlesButton.dataset.autoClicked) {
-            subtitlesButton.dataset.autoClicked = 'true';
-            subtitlesButton.click();
-          }
-        }, 1500);
-
-        // Remover o elemento após um tempo
-        setTimeout(() => {
-          if (tempElement.parentNode) {
-            document.body.removeChild(tempElement);
-          }
-        }, 1000);
-      }, 100);
-
-      // Limpar o input e definir o texto de tradução imediatamente
-      traslatingText.value = inputText.value;
+      // Limpar o input após iniciar a tradução
       inputText.value = '';
-
-      // Desativar modo de tradução após 10 segundos automaticamente
-      setTimeout(() => {
-        isTranslating.value = false;
-      }, 10000);
     } catch (error) {
-      // Track de erro na tradução
-      trackError(
-        'translation_error',
-        error?.toString() || 'Erro desconhecido',
-        'basic_translation'
-      );
-      isTranslating.value = false;
+      console.error('Erro na tradução:', error);
     }
   }, 0);
 };
@@ -143,8 +100,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
 const handleFocus = () => {
   // Limpar o texto de tradução e desativar modo de tradução quando o usuário focar no input novamente
-  if (traslatingText.value) {
-    traslatingText.value = '';
+  if (translatingText.value) {
+    translatingText.value = '';
     isTranslating.value = false;
   }
 
@@ -168,13 +125,25 @@ const handleBlur = () => {
   // Apenas retornar foco se não há texto sendo traduzido e o foco realmente foi perdido
   setTimeout(() => {
     if (
-      !traslatingText.value &&
+      !translatingText.value &&
       !isTranslating.value &&
       document.activeElement !== inputRef.value
     ) {
       inputRef.value?.focus();
     }
   }, 100);
+};
+
+const openHistoryDialog = () => {
+  showHistoryDialog.value = true;
+  trackHistoryDialogOpen();
+};
+
+const closeHistoryDialog = (
+  method: 'button' | 'overlay' | 'retranslate' = 'button'
+) => {
+  showHistoryDialog.value = false;
+  trackHistoryDialogClose(method);
 };
 
 onMounted(() => {
@@ -184,7 +153,7 @@ onMounted(() => {
 
   // Configurar foco inicial apenas se não há tradução e não é mobile
   setTimeout(() => {
-    if (!traslatingText.value && !isTranslating.value && !isMobileDevice()) {
+    if (!translatingText.value && !isTranslating.value && !isMobileDevice()) {
       inputRef.value?.focus();
     }
   }, 500);
@@ -194,7 +163,7 @@ onMounted(() => {
     // Só redirecionar foco se não clicou no próprio input E não há tradução em andamento E não é mobile
     if (
       e.target !== inputRef.value &&
-      !traslatingText.value &&
+      !translatingText.value &&
       !isTranslating.value &&
       !isMobileDevice()
     ) {
@@ -202,7 +171,7 @@ onMounted(() => {
         // Verificar novamente antes de focar
         if (
           !isTranslating.value &&
-          !traslatingText.value &&
+          !translatingText.value &&
           !isMobileDevice()
         ) {
           inputRef.value?.focus();
@@ -213,53 +182,33 @@ onMounted(() => {
 
   // Foco apenas em teclas especiais (não caracteres normais) e não em mobile
   document.addEventListener('keydown', e => {
+    // Fechar dialog de histórico com Escape
+    if (e.key === 'Escape' && showHistoryDialog.value) {
+      closeHistoryDialog();
+      return;
+    }
+
     // Só redirecionar foco se não está no input E é uma tecla especial E não há tradução em andamento E não é mobile
     if (
       document.activeElement !== inputRef.value &&
-      !traslatingText.value &&
+      !translatingText.value &&
       !isTranslating.value &&
       !isMobileDevice() &&
       (e.key === 'Tab' || e.key === 'Escape' || e.metaKey || e.ctrlKey)
     ) {
       e.preventDefault();
       // Verificar novamente antes de focar
-      if (!isTranslating.value && !traslatingText.value && !isMobileDevice()) {
+      if (!isTranslating.value && !translatingText.value && !isMobileDevice()) {
         inputRef.value?.focus();
       }
     }
   });
-
-  // Fallback para garantir que o botão de tradução sempre funcione
-  setTimeout(() => {
-    const translateButton = document.querySelector(
-      '.translate-button'
-    ) as HTMLElement;
-    if (translateButton) {
-      // Adicionar listeners direto no DOM como backup
-      const forceTranslate = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        translateText(e);
-      };
-
-      translateButton.addEventListener('mousedown', forceTranslate, {
-        capture: true,
-      });
-      translateButton.addEventListener('touchstart', forceTranslate, {
-        capture: true,
-      });
-      translateButton.addEventListener('click', forceTranslate, {
-        capture: true,
-      });
-    }
-  }, 1000);
 });
 </script>
 
 <template>
   <main
-    class="relative w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-[90vh]"
+    class="relative w-full flex flex-col xl:justify-center justify-end items-start mx-auto h-screen"
     role="main"
     aria-label="Aplicativo Tradutor para Libras"
   >
@@ -269,17 +218,17 @@ onMounted(() => {
       aria-label="Seção de tradução de texto"
     >
       <div
-        class="z-10 flex flex-col w-full pt-4 max-w-[500px] xl:h-[430px] justify-start gap-6 max-xl:gap-2 items-start"
+        class="z-10 flex flex-col w-full pt-4 max-w-[500px] justify-start gap-4 max-xl:gap-2 items-start"
       >
         <h1 class="xl:text-3xl text-2xl font-bold" id="main-title">
-          Tradutor para <strong class="text-secondary">Libras</strong>
+          Traduz <strong class="text-secondary">Libras</strong>
         </h1>
         <p class="text-sm max-xl:text-xs">
           Converta texto em português para linguagem de sinais de forma rápida e
-          acessível
+          gratuita.
         </p>
 
-        <div class="w-full">
+        <div class="w-full mt-2">
           <label for="text-input" class="sr-only">
             Digite o texto que deseja traduzir para Libras
           </label>
@@ -288,7 +237,7 @@ onMounted(() => {
             ref="inputRef"
             v-model="inputText"
             placeholder="Digite o texto que você quer traduzir para Libras"
-            class="w-full px-4 py-3 h-40 max-lg:h-32 max-lg:text-sm flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
+            class="w-full px-4 py-3 h-40 max-2xl:h-32 max-lg:text-sm flex flex-col text-midnight items-start justify-start text-lg rounded-lg !outline-none bg-white-smoke resize-none"
             @keydown="handleKeyDown"
             @focus="handleFocus"
             @blur="handleBlur"
@@ -298,37 +247,70 @@ onMounted(() => {
           </textarea>
         </div>
 
-        <button
-          @mousedown="translateText"
-          @click="translateText"
-          @touchstart="translateText"
-          class="w-full h-10 cursor-pointer bg-secondary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 translate-button"
-          aria-label="Traduzir texto para Libras"
-          :disabled="!inputText.trim()"
-          data-vlib-ignore="true"
-          data-no-translate="true"
-        >
-          <span data-vlib-ignore="true">Traduzir</span>
-          <i
-            class="mdi ml-3 text-xl mdi-hand-clap"
-            aria-hidden="true"
+        <div class="w-full flex flex-row items-center gap-2">
+          <button
+            @click="openHistoryDialog"
+            @mousedown.prevent="openHistoryDialog"
+            @touchstart.prevent="openHistoryDialog"
+            class="h-10 w-10 xl:hidden flex bg-primary text-white rounded-full shrink-0 items-center justify-center hover:bg-primary/90 transition-colors duration-200"
+            aria-label="Abrir histórico de traduções"
             data-vlib-ignore="true"
-          ></i>
-        </button>
+            data-no-translate="true"
+          >
+            <i class="mdi mdi-history" aria-hidden="true"></i>
+          </button>
+          <button
+            @mousedown="translateText"
+            @click="translateText"
+            @touchstart="translateText"
+            class="w-full h-10 cursor-pointer disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed bg-secondary text-white transition-all duration-300 rounded-md flex items-center justify-center select-none hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 translate-button"
+            aria-label="Traduzir texto para Libras"
+            :disabled="!inputText.trim() || isTranslating"
+            data-vlib-ignore="true"
+            data-no-translate="true"
+          >
+            <span data-vlib-ignore="true">{{
+              isTranslating ? 'Traduzindo...' : 'Traduzir'
+            }}</span>
+            <i
+              :class="
+                isTranslating ? 'mdi mdi-loading mdi-spin' : 'mdi mdi-hand-clap'
+              "
+              class="mdi ml-3 text-xl"
+              aria-hidden="true"
+              data-vlib-ignore="true"
+            ></i>
+          </button>
+        </div>
 
-        <div class="text-sm text-right xl:-mt-4 w-full" id="input-instructions">
+        <div class="text-sm text-right xl:-mt-2 w-full" id="input-instructions">
           <span class="max-lg:text-xs"
             >ou pressione <strong>Enter </strong>
             <i class="mdi mdi-keyboard-return" aria-hidden="true"></i> para
             traduzir</span
           >
         </div>
+        <Historic data-vlib-ignore="true" class="max-xl:hidden" />
       </div>
     </section>
 
+    <!-- Dialog de histórico para mobile -->
+    <MobileDialog
+      :is-open="showHistoryDialog"
+      title="Histórico de Traduções"
+      max-height="80vh"
+      content-class="pr-1"
+      @close="closeHistoryDialog"
+    >
+      <Historic
+        data-vlib-ignore="true"
+        :on-close-dialog="() => closeHistoryDialog('retranslate')"
+      />
+    </MobileDialog>
+
     <!-- Texto sendo traduzido -->
     <div
-      v-if="traslatingText"
+      v-if="translatingText"
       class="fixed max-xl:hidden top-4 xl:right-[calc(50%-150px)] right-4 left-4 xl:left-auto xl:w-80 bg-white border border-gray-200 rounded-lg p-4 shadow-lg z-[9999999999]"
       role="status"
       aria-live="polite"
@@ -339,52 +321,12 @@ onMounted(() => {
         class="text-midnight font-medium line-clamp-2 text-ellipsis"
         aria-label="Texto sendo traduzido"
       >
-        {{ traslatingText }}
+        {{ translatingText }}
       </p>
     </div>
   </main>
 </template>
 
 <style scoped>
-/* Proteger botão de tradução contra interferência do VLibras */
-.translate-button {
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 999999 !important;
-  isolation: isolate !important;
-  touch-action: manipulation !important;
-}
-
-.translate-button * {
-  pointer-events: none !important;
-  user-select: none !important;
-}
-
-.translate-button[data-vlib-ignore] {
-  pointer-events: auto !important;
-}
-
-/* Forçar que elementos com data-vlib-ignore sejam clicáveis */
-[data-vlib-ignore] {
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 999999 !important;
-}
-</style>
-
-<style>
-/* CSS Global para proteger botão de tradução */
-.translate-button,
-button.translate-button,
-[data-vlib-ignore].translate-button {
-  pointer-events: auto !important;
-  z-index: 999999 !important;
-  isolation: isolate !important;
-  touch-action: manipulation !important;
-}
-
-.translate-button[data-vlib-ignore] * {
-  pointer-events: none !important;
-  user-select: none !important;
-}
+/* Estilos específicos do componente Home (proteção VLibras é global em style.css) */
 </style>
