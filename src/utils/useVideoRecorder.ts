@@ -31,6 +31,8 @@ export function useVideoRecorder(
   const isRecording = ref(false);
   let mediaRecorder: MediaRecorder | null = null;
   let recordedChunks: Blob[] = [];
+  let watermarkCanvas: HTMLCanvasElement | null = null;
+  let animationId: number | null = null;
 
   /**
    * Localiza o canvas do VLibras no DOM
@@ -72,6 +74,80 @@ export function useVideoRecorder(
   };
 
   /**
+   * Cria canvas com marca d'água sobreposto ao canvas do VLibras
+   */
+  const createWatermarkCanvas = (
+    sourceCanvas: HTMLCanvasElement
+  ): HTMLCanvasElement => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Não foi possível criar contexto 2D');
+    }
+
+    // Configurar dimensões do canvas
+    canvas.width = sourceCanvas.width;
+    canvas.height = sourceCanvas.height;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '1000';
+
+    // Função para desenhar frame com marca d'água
+    const drawFrame = () => {
+      // Limpar canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Desenhar o canvas do VLibras
+      ctx.drawImage(sourceCanvas, 0, 0);
+
+      // Configurar estilo da marca d'água
+      ctx.font = 'bold 24px Arial, sans-serif';
+      ctx.fillStyle = ' #10449c';
+      ctx.strokeStyle = ' #ffffff';
+      ctx.lineWidth = 1;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+
+      // Posicionar marca d'água no canto inferior direito
+      const padding = 20;
+      const x = canvas.width - padding;
+      const y = canvas.height - padding;
+
+      // Desenhar texto com contorno
+      const text = 'traduzlibras.com - vLibras';
+      ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+    };
+
+    // Iniciar loop de animação
+    const animate = () => {
+      drawFrame();
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return canvas;
+  };
+
+  /**
+   * Limpa recursos da marca d'água
+   */
+  const cleanupWatermark = () => {
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    if (watermarkCanvas && watermarkCanvas.parentNode) {
+      watermarkCanvas.parentNode.removeChild(watermarkCanvas);
+      watermarkCanvas = null;
+    }
+  };
+
+  /**
    * Inicia a gravação do canvas
    */
   const startRecording = async (): Promise<void> => {
@@ -80,8 +156,19 @@ export function useVideoRecorder(
         throw new Error('MediaRecorder não é suportado neste navegador');
       }
 
-      const canvas = await waitForCanvas();
-      const stream = canvas.captureStream(fps);
+      const sourceCanvas = await waitForCanvas();
+
+      // Criar canvas com marca d'água
+      watermarkCanvas = createWatermarkCanvas(sourceCanvas);
+
+      // Adicionar canvas ao DOM (posicionado sobre o canvas original)
+      const gameContainer = document.querySelector('#gameContainer');
+      if (gameContainer) {
+        gameContainer.style.position = 'relative';
+        gameContainer.appendChild(watermarkCanvas);
+      }
+
+      const stream = watermarkCanvas.captureStream(fps);
 
       if (!stream || stream.getVideoTracks().length === 0) {
         throw new Error('Não foi possível capturar stream do canvas');
@@ -146,6 +233,10 @@ export function useVideoRecorder(
           const mimeType = mediaRecorder?.mimeType || 'video/mp4';
           const blob = new Blob(recordedChunks, { type: mimeType });
           isRecording.value = false;
+
+          // Limpar recursos da marca d'água
+          cleanupWatermark();
+
           resolve(blob);
         };
 
@@ -153,6 +244,7 @@ export function useVideoRecorder(
           mediaRecorder.stop();
         } else {
           isRecording.value = false;
+          cleanupWatermark();
           resolve(null);
         }
       });
@@ -161,6 +253,7 @@ export function useVideoRecorder(
         error instanceof Error ? error.message : 'Erro ao parar gravação';
       onError?.(errorMessage);
       isRecording.value = false;
+      cleanupWatermark();
       return null;
     }
   };
