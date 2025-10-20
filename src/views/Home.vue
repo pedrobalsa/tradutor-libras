@@ -208,7 +208,7 @@ onMounted(() => {
 
 <template>
   <main
-    class="relative w-full flex flex-col xl:justify-center justify-end items-start mx-auto h-screen"
+    class="relative w-full flex flex-col xl:justify-center justify-start items-start mx-auto h-screen"
     role="main"
     aria-label="Aplicativo Tradutor para Libras"
   >

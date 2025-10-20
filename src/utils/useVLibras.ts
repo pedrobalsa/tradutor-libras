@@ -225,7 +225,7 @@ export function useVLibras(options: UseVLibrasOptions = {}) {
           if (screenWidth < 1280) height = height / 2;
 
           let bottomPosition = -(height / 2) + 20;
-          if (screenWidth < 1280) bottomPosition = 0;
+          if (screenWidth < 1280) bottomPosition = -height + 15;
 
           widget.style.setProperty('position', 'fixed', 'important');
           widget.style.setProperty('top', 'auto', 'important');
